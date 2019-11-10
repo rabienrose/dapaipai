@@ -11,7 +11,8 @@
 			import * as THREE from './js/build/three.module.js';
 			import Stats from './js/examples/jsm/libs/stats.module.js';
 			import { PLYLoader } from './js/examples/jsm/loaders/PLYLoader.js';
-			import { TrackballControls } from './js/examples/jsm/controls/TrackballControls.js';
+			import { OrbitControls } from './js/examples/jsm/controls/OrbitControls.js';
+
 			var container, controls;
 			var camera, cameraTarget, scene, renderer;
 			init();
@@ -20,36 +21,57 @@
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1500 );
-				camera.position.set( 0, -4, 2 );
-				cameraTarget = new THREE.Vector3( 0, 2, 0 );
-                camera.lookAt( cameraTarget );
+                camera.position.set( 0, 4, -10 );
 				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xcccccc );
+				scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
 				var loader = new PLYLoader();
 				var addr = getPar("model");
 				loader.load( "./res/"+addr, function ( geometry ) {
-					var starsMaterial = new THREE.PointsMaterial( { size: 1, sizeAttenuation: false, vertexColors:THREE.VertexColors} );
+					var starsMaterial = new THREE.PointsMaterial( { size: 2, sizeAttenuation: false, vertexColors:THREE.VertexColors} );
 					var mesh = new THREE.Points( geometry, starsMaterial );
-					mesh.rotation.x = -Math.PI/2;
+					mesh.rotation.z = -Math.PI;
+					mesh.scale.x=10;
+					mesh.scale.y=10;
+					mesh.scale.z=10;
 					scene.add( mesh );
 					var center = mesh.geometry.boundingSphere.center;
-					controls.target.set( 0, 0, 0 );
+					controls.target.set( 0, 0, 60  );
 					controls.update();
 				} );
+
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.shadowMap.enabled = false;
 				container.appendChild( renderer.domElement );
-				controls = new TrackballControls( camera, renderer.domElement );
-				controls.rotateSpeed = 2.0;
-				controls.zoomSpeed = 1;
-				controls.panSpeed = 0.2;
-				controls.noZoom = false;
-				controls.noPan = false;
-				controls.staticMoving = true;
-				controls.dynamicDampingFactor = 0.3;
-				controls.minDistance = 0.3;
-				controls.maxDistance = 0.3 * 100;
+				
+				controls = new OrbitControls( camera, renderer.domElement );
+
+				controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+				controls.dampingFactor = 0.05;
+
+				controls.screenSpacePanning = false;
+
+				controls.minDistance = 10;
+				controls.maxDistance = 500;
+
+				controls.maxPolarAngle = Math.PI / 2;
+				controls.minPolarAngle = Math.PI / 6;
+				
+				var geometry = new THREE.CylinderBufferGeometry( 0, 10, 30, 4, 1 );
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } );
+				
+				var light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 1, 1, 1 );
+				scene.add( light );
+
+				var light = new THREE.DirectionalLight( 0x002288 );
+				light.position.set( - 1, - 1, - 1 );
+				scene.add( light );
+
+				var light = new THREE.AmbientLight( 0x222222 );
+				scene.add( light );
 				window.addEventListener( 'resize', onWindowResize, false );
 			}
 			
@@ -78,7 +100,8 @@
 			}
 			
 			function animate() {
-				requestAnimationFrame( animate );
+			    requestAnimationFrame( animate );
+
 				controls.update();
 				renderer.render( scene, camera );
 			}
