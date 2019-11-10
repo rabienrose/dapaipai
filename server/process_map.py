@@ -13,7 +13,7 @@ while True:
         server_status="IDLE"
 
     if server_status=="IDLE":
-        d = '/root/server/static/res'
+        d = '/root/dapaipai/server/static/res'
         for o in os.listdir(d):
             usr_path = os.path.join(d,o)
             print(o)
