@@ -11,7 +11,7 @@ else:
     server_status="IDLE"
 
 if server_status=="IDLE":
-    d = '/home/chamo/Documents/data/web_server_try'
+    d = '/root/server/static/res'
     for o in os.listdir(d):
         usr_path = os.path.join(d,o)
         print(o)
@@ -22,7 +22,7 @@ if server_status=="IDLE":
                 os.system('sshpass -p La_009296 ssh -o StrictHostKeyChecking=no root@'+server_id+' "rm -rf /root/data/*"')
                 os.system('sshpass -p La_009296 scp -r -o StrictHostKeyChecking=no '+full_scene_add+'/* root@'+server_id+':/root/data')
                 os.system('sshpass -p La_009296 ssh -o StrictHostKeyChecking=no root@'+server_id+' "docker run --rm --gpus all --mount src=/root/data,target=/root/data,type=bind chamo1 /bin/bash /root/start.sh"')
-                #os.system('sshpass -p La_009296 scp -o StrictHostKeyChecking=no root@'+server_id+':/root/data/dense/0/fused.ply '+full_scene_add)
+                os.system('sshpass -p La_009296 scp -o StrictHostKeyChecking=no root@'+server_id+':/root/data/dense/0/fused.ply '+full_scene_add)
             
             
         

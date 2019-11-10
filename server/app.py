@@ -27,7 +27,7 @@ def handle_upload():
     scene_root=usr_root+'/'+scene_id
     if not os.path.exists(scene_root):
         os.makedirs(scene_root)
-    image_addr=scene_root+"/images"
+    image_addr=scene_root+"/img"
     if not os.path.exists(image_addr):
         os.makedirs(image_addr)
     for img in imgs:
