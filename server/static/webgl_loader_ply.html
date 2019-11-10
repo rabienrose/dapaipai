@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>My Model</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+	</head>
+	<body>
+		<script type="module">
+			import * as THREE from './js/build/three.module.js';
+			import Stats from './js/examples/jsm/libs/stats.module.js';
+			import { PLYLoader } from './js/examples/jsm/loaders/PLYLoader.js';
+			import { TrackballControls } from './js/examples/jsm/controls/TrackballControls.js';
+			var container, controls;
+			var camera, cameraTarget, scene, renderer;
+			init();
+			animate();
+			function init() {
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1500 );
+				camera.position.set( 0, -4, 2 );
+				cameraTarget = new THREE.Vector3( 0, 2, 0 );
+                camera.lookAt( cameraTarget );
+				scene = new THREE.Scene();
+				var loader = new PLYLoader();
+				var addr = getPar("model");
+				loader.load( "./res/"+addr, function ( geometry ) {
+					var starsMaterial = new THREE.PointsMaterial( { size: 1, sizeAttenuation: false, vertexColors:THREE.VertexColors} );
+					var mesh = new THREE.Points( geometry, starsMaterial );
+					mesh.rotation.x = -Math.PI/2;
+					scene.add( mesh );
+					var center = mesh.geometry.boundingSphere.center;
+					controls.target.set( 0, 0, 0 );
+					controls.update();
+				} );
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.shadowMap.enabled = false;
+				container.appendChild( renderer.domElement );
+				controls = new TrackballControls( camera, renderer.domElement );
+				controls.rotateSpeed = 2.0;
+				controls.zoomSpeed = 1;
+				controls.panSpeed = 0.2;
+				controls.noZoom = false;
+				controls.noPan = false;
+				controls.staticMoving = true;
+				controls.dynamicDampingFactor = 0.3;
+				controls.minDistance = 0.3;
+				controls.maxDistance = 0.3 * 100;
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+			
+			function getPar(par){
+                var local_url = document.location.href; 
+                var get = local_url.indexOf(par +"=");
+                if(get == -1){
+                    return false;   
+                }   
+                var get_par = local_url.slice(par.length + get + 1);    
+                var nextPar = get_par.indexOf("&");
+                if(nextPar != -1){
+                    get_par = get_par.slice(0, nextPar);
+                }
+                return get_par;
+            }
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+
+			function render() {
+				renderer.render( scene, camera );
+			}
+			
+			function animate() {
+				requestAnimationFrame( animate );
+				controls.update();
+				renderer.render( scene, camera );
+			}
+
+		</script>
+	</body>
+</html>

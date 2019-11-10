@@ -1,0 +1,109 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Dapaipai</title>
+    <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        function show_list(model_list){
+            var html_str='<table border="1">'
+            html_str=html_str+"<tr>"+"<th>"+"  User Name  "+"</th>"+"<th>"+"  Scene Name  "+"</th>"+"</tr>"
+            for (var index = 0; index < model_list.length; index++)
+            {
+                html_str=html_str+"<tr>"
+                html_str=html_str+"<td>"+model_list[index]['usr_id']+"</td>"+"<td>"+model_list[index]['scene_id']+"</td>"
+                if (model_list[index]['model']!=""){
+                    html_str=html_str+"<td>"+"<a href=static/webgl_loader_ply.html?model=./"+model_list[index]['usr_id']+"/"+model_list[index]['scene_id']+"/"+model_list[index]['model']+">Model</a>"+"</td>"
+                }else{
+                    html_str=html_str+"<td></td>"
+                }
+                html_str=html_str+"</tr>"
+            }
+            html_str=html_str+"</table>"
+            document.getElementById('model_list').innerHTML = html_str;
+        }
+        function fileSelected() {
+          var count = document.getElementById('fileToUpload').files.length;
+          document.getElementById('details').innerHTML = "";
+          for (var index = 0; index < count; index ++)
+          {
+             var file = document.getElementById('fileToUpload').files[index];
+             var fileSize = 0;
+             if (file.size > 1024 * 1024)
+                fileSize = (Math.round(file.size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
+             else
+                fileSize = (Math.round(file.size * 100 / 1024) / 100).toString() + 'KB';
+             document.getElementById('details').innerHTML += 'Name: ' + file.name + '<br>Size: ' + fileSize + '<br>Type: ' + file.type;
+             document.getElementById('details').innerHTML += '<p>';
+          }
+        }
+        function uploadFile() {
+            var fd = new FormData();
+            var count = document.getElementById('fileToUpload').files.length;
+            for (var index = 0; index < count; index ++)
+            {
+                var file = document.getElementById('fileToUpload').files[index];
+                fd.append('myFile', file);
+                var usr_id = document.getElementById('usr_id').value;
+                fd.append('usr_id',usr_id);
+                var scene_id = document.getElementById('scene_id').value;
+                fd.append('scene_id',scene_id);
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener("progress", uploadProgress, false);
+            xhr.addEventListener("load", uploadComplete, false);
+            xhr.addEventListener("error", uploadFailed, false);
+            xhr.addEventListener("abort", uploadCanceled, false);
+            xhr.open("POST", "upload");
+            xhr.send(fd);
+        }
+        function uploadProgress(evt) {
+            if (evt.lengthComputable) {
+              var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+              document.getElementById('progress').innerHTML = percentComplete.toString() + '%';
+            }
+            else {
+              document.getElementById('progress').innerHTML = 'unable to compute';
+            }
+        }
+        function uploadComplete(evt) {
+            alert(evt.target.responseText);
+        }
+        function uploadFailed(evt) {
+            alert("There was an error attempting to upload the file.");
+        }
+        function uploadCanceled(evt) {
+            alert("The upload has been canceled by the user or the browser dropped the connection.");
+        }
+        $(document).ready(function(){
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function() { 
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+                    show_list(JSON.parse(xmlHttp.responseText))
+                }
+            }
+            xmlHttp.open("GET", "show_list", true); // true for asynchronous 
+            xmlHttp.send(null);
+        })
+    </script>
+</head>
+<body>
+    <form id="form1" enctype="multipart/form-data" method="post">
+        <div>
+          <label for="usr_id">User Name: </label><br/>
+          <input type="text" id="usr_id"><br/>
+          <label for="scene_id">Scene Name: </label><br/>
+          <input type="text" id="scene_id"><br/>
+          <label for="fileToUpload">Take or select photo(s)</label><br/>
+          <input type="file" name="fileToUpload" id="fileToUpload" onchange="fileSelected();" accept="image/*" multiple/>
+        </div>
+        <div id="details"></div>
+        <div>
+          <input type="button" onclick="uploadFile()" value="Upload" />
+        </div>
+        <div id="progress"></div>
+        <div id="model_list">
+            
+        </div>
+    </form>
+</body>
+</html>
