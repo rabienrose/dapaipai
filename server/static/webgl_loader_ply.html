@@ -23,8 +23,8 @@
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1500 );
                 camera.position.set( 0, 4, -10 );
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color( 0xcccccc );
-				scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
+				scene.background = new THREE.Color( 0x000000 );
+				//scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
 				var loader = new PLYLoader();
 				var addr = getPar("model");
 				loader.load( "./res/"+addr, function ( geometry ) {
