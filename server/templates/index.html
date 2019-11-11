@@ -21,28 +21,44 @@
             html_str=html_str+"</table>"
             document.getElementById('model_list').innerHTML = html_str;
         }
+        file_list=new Array();
         function fileSelected() {
-          var count = document.getElementById('fileToUpload').files.length;
-          document.getElementById('details').innerHTML = "";
-          for (var index = 0; index < count; index ++)
-          {
-             var file = document.getElementById('fileToUpload').files[index];
-             var fileSize = 0;
-             if (file.size > 1024 * 1024)
-                fileSize = (Math.round(file.size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
-             else
-                fileSize = (Math.round(file.size * 100 / 1024) / 100).toString() + 'KB';
-             document.getElementById('details').innerHTML += 'Name: ' + file.name + '<br>Size: ' + fileSize + '<br>Type: ' + file.type;
-             document.getElementById('details').innerHTML += '<p>';
-          }
+            file_list=new Array();
+            var count = document.getElementById('fileToUpload').files.length;
+            document.getElementById('details').innerHTML = "";
+            for (var index = 0; index < count; index ++)
+            {
+                var file = document.getElementById('fileToUpload').files[index];
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        
+                        mainCanvas = document.createElement("canvas");
+                        mainCanvas.width = img.width/4;
+                        mainCanvas.height = img.height/4;
+                        var ctx = mainCanvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0, mainCanvas.width, mainCanvas.height);
+                        var ImageURL = mainCanvas.toDataURL("image/jpeg");
+                        //$('#outputImage').attr('src', ImageURL);
+                        var blob = dataURLtoFile(ImageURL, file_list.length.toString(10)+".jpeg");
+                        file_list.push(blob);
+                        
+                    };
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
         }
+        
         function uploadFile() {
             var fd = new FormData();
             var count = document.getElementById('fileToUpload').files.length;
             for (var index = 0; index < count; index ++)
             {
                 var file = document.getElementById('fileToUpload').files[index];
-                fd.append('myFile', file);
+                //console.log(file_list[index].size);
+                fd.append('myFile', file_list[index]);
                 var usr_id = document.getElementById('usr_id').value;
                 fd.append('usr_id',usr_id);
                 var scene_id = document.getElementById('scene_id').value;
@@ -84,6 +100,20 @@
             xmlHttp.open("GET", "show_list", true); // true for asynchronous 
             xmlHttp.send(null);
         })
+
+        function dataURLtoFile(dataurl, filename) {
+            var arr = dataurl.split(','),
+                mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), 
+                n = bstr.length, 
+                u8arr = new Uint8Array(n);
+                
+            while(n--){
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            
+            return new File([u8arr], filename, {type:mime});
+        }
     </script>
 </head>
 <body>
@@ -104,6 +134,7 @@
         <div id="model_list">
             
         </div>
+        <img id="outputImage"/>
     </form>
 </body>
 </html>
