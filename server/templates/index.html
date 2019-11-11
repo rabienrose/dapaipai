@@ -58,7 +58,8 @@
             {
                 var file = document.getElementById('fileToUpload').files[index];
                 //console.log(file_list[index].size);
-                fd.append('myFile', file_list[index]);
+                //fd.append('myFile', file_list[index]);
+                fd.append('myFile', file);
                 var usr_id = document.getElementById('usr_id').value;
                 fd.append('usr_id',usr_id);
                 var scene_id = document.getElementById('scene_id').value;
