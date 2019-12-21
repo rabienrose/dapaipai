@@ -1,2 +1,0 @@
-# dapaipai
-Watch danmu nearby
