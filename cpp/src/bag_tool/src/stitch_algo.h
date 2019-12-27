@@ -45,6 +45,7 @@ public:
     void DoOptimize();
     void CalSphereSurface(Eigen::Matrix3d cur_dir);
     void FindNearRay(Eigen::Matrix3d, std::vector<PANO::KeyFrame*>& candi_list, std::vector<PANO::KeyFrame*>& overlay_list);
+    void FinalImg();
     Eigen::Quaterniond cam_dir;
     bool is_paint;
 private:

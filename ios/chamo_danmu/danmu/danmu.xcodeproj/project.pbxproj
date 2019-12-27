@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		041FC15C2365386B00203CCF /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 041FC15B2365386B00203CCF /* opencv2.framework */; };
 		041FC15E2365546600203CCF /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 041FC15D2365546600203CCF /* CoreMotion.framework */; };
+		041FC172236804F200203CCF /* socketio_api.m in Sources */ = {isa = PBXBuildFile; fileRef = 041FC170236804F200203CCF /* socketio_api.m */; };
 		049FAAE1236430A500AF7FF0 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 049FAAE0236430A500AF7FF0 /* AppDelegate.m */; };
 		049FAAE4236430A500AF7FF0 /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 049FAAE3236430A500AF7FF0 /* ViewController.mm */; };
 		049FAAE7236430A500AF7FF0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 049FAAE5236430A500AF7FF0 /* Main.storyboard */; };
@@ -39,11 +39,15 @@
 		04D9451523649248001473C1 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04D9451423649248001473C1 /* CoreMedia.framework */; };
 		04D945172364925E001473C1 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04D945162364925E001473C1 /* CoreVideo.framework */; };
 		04D9451923649298001473C1 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04D9451823649297001473C1 /* AVFoundation.framework */; };
+		221DAB2F2393FEA800431089 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 221DAB2E2393FEA800431089 /* opencv2.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		041FC15B2365386B00203CCF /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = opencv2.framework; path = ../3rdparty/opencv2.framework; sourceTree = "<group>"; };
 		041FC15D2365546600203CCF /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		041FC16E2368022800203CCF /* SocketIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SocketIO.framework; path = ../../framework/SocketIO.framework; sourceTree = "<group>"; };
+		041FC170236804F200203CCF /* socketio_api.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = socketio_api.m; sourceTree = "<group>"; };
+		041FC171236804F200203CCF /* socketio_api.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = socketio_api.h; sourceTree = "<group>"; };
 		049FAADC236430A500AF7FF0 /* danmu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = danmu.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		049FAADF236430A500AF7FF0 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		049FAAE0236430A500AF7FF0 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -100,6 +104,8 @@
 		04D9451423649248001473C1 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		04D945162364925E001473C1 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		04D9451823649297001473C1 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		221DAB2C2393FE9600431089 /* framework */ = {isa = PBXFileReference; lastKnownFileType = folder; name = framework; path = ../../framework; sourceTree = "<group>"; };
+		221DAB2E2393FEA800431089 /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = opencv2.framework; path = ../../framework/opencv2.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,8 +113,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				221DAB2F2393FEA800431089 /* opencv2.framework in Frameworks */,
 				041FC15E2365546600203CCF /* CoreMotion.framework in Frameworks */,
-				041FC15C2365386B00203CCF /* opencv2.framework in Frameworks */,
 				04D9451923649298001473C1 /* AVFoundation.framework in Frameworks */,
 				04D945172364925E001473C1 /* CoreVideo.framework in Frameworks */,
 				04D9451523649248001473C1 /* CoreMedia.framework in Frameworks */,
@@ -139,6 +145,8 @@
 		049FAADE236430A500AF7FF0 /* danmu */ = {
 			isa = PBXGroup;
 			children = (
+				041FC171236804F200203CCF /* socketio_api.h */,
+				041FC170236804F200203CCF /* socketio_api.m */,
 				049FAAF92364314E00AF7FF0 /* BarrageRenderer */,
 				049FAADF236430A500AF7FF0 /* AppDelegate.h */,
 				049FAAE0236430A500AF7FF0 /* AppDelegate.m */,
@@ -230,6 +238,9 @@
 		04D9451123649226001473C1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				221DAB2E2393FEA800431089 /* opencv2.framework */,
+				221DAB2C2393FE9600431089 /* framework */,
+				041FC16E2368022800203CCF /* SocketIO.framework */,
 				041FC15D2365546600203CCF /* CoreMotion.framework */,
 				041FC15B2365386B00203CCF /* opencv2.framework */,
 				04D9451823649297001473C1 /* AVFoundation.framework */,
@@ -329,6 +340,7 @@
 				049FAB312364314E00AF7FF0 /* UILabel+BarrageView.m in Sources */,
 				049FAB2A2364314E00AF7FF0 /* BarrageWalkSprite.m in Sources */,
 				049FAB2C2364314E00AF7FF0 /* BarrageSprite.m in Sources */,
+				041FC172236804F200203CCF /* socketio_api.m in Sources */,
 				049FAAEF236430A600AF7FF0 /* main.m in Sources */,
 				049FAB302364314E00AF7FF0 /* BarrageFloatSprite.m in Sources */,
 				049FAB3A2364314F00AF7FF0 /* BarrageSpriteFactory.m in Sources */,
@@ -475,8 +487,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = Q84JA4R9R7;
-				FRAMEWORK_SEARCH_PATHS = /Users/mac/Documents/BarrageRenderer/chamo_danmu/3rdparty;
+				DEVELOPMENT_TEAM = TYYBQ8K9M6;
+				FRAMEWORK_SEARCH_PATHS = /Users/ziliwang/Documents/dapaipai/ios/framework;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = danmu/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -494,8 +506,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = Q84JA4R9R7;
-				FRAMEWORK_SEARCH_PATHS = /Users/mac/Documents/BarrageRenderer/chamo_danmu/3rdparty;
+				DEVELOPMENT_TEAM = TYYBQ8K9M6;
+				FRAMEWORK_SEARCH_PATHS = /Users/ziliwang/Documents/dapaipai/ios/framework;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = danmu/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
