@@ -36,6 +36,7 @@ class StitchAlgo{
 public:
     StitchAlgo();
     void AddImage(cv::Mat img, double timestamp);
+    void AddImageSimple(cv::Mat img, double timestamp);
     void AddRot(Eigen::Quaterniond rot_angle,Eigen::Vector3d rot_speed, Eigen::Vector3d acc, double timestamp);
     cv::Mat GetParoImage();
     cv::Mat GetRawImage();
@@ -44,6 +45,7 @@ public:
     void AddNewFrame(PANO::KeyFrame *new_frame, bool& is_discard, std::vector<PANO::KeyFrame*>& candi_list, std::vector<PANO::KeyFrame*>& overlay_list);
     void DoOptimize();
     void CalSphereSurface(Eigen::Matrix3d cur_dir);
+    void CalSphereSurfaceByFrame(PANO::KeyFrame* frame);
     void FindNearRay(Eigen::Matrix3d, std::vector<PANO::KeyFrame*>& candi_list, std::vector<PANO::KeyFrame*>& overlay_list);
     void FinalImg();
     Eigen::Quaterniond cam_dir;
@@ -59,6 +61,7 @@ private:
     cv::Mat sphere_img;
     cv::Mat latest_img;
     Eigen::Matrix3d R_b_c;
+    Eigen::Matrix3d R_pano_w;
     Eigen::Matrix3d R_unity_w;
     std::vector<Eigen::Vector3d> sphere_pts;
     std::vector<Eigen::Vector2i> sphere_pts_uv;
