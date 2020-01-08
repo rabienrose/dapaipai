@@ -1,6 +1,7 @@
 #include "precomp.hpp"
 using namespace chamo;
-using namespace chamo::detail;
+using namespace chamo::panod;
+using namespace cv::detail;
 
 namespace {
 struct DistIdxPair
@@ -132,7 +133,7 @@ void CpuMatcher::match(const ImageFeatures &features1, const ImageFeatures &feat
 
 
 namespace chamo {
-namespace detail {
+namespace panod {
 
 void computeImageFeatures(
     const Ptr<Feature2D> &featuresFinder,
@@ -406,5 +407,5 @@ void AffineBestOf2NearestMatcher::match(const ImageFeatures &features1, const Im
 }
 
 
-} // namespace detail
+} // namespace panod
 } // namespace cv

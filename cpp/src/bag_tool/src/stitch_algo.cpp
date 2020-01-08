@@ -6,23 +6,27 @@
 #include "ORBmatcher.h"
 #include "ORBextractor.h"
 #include <cmath>
-#include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/image_encodings.h>
 #include <rosbag/view.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <time.h>
-#include "chamo/stitching/detail/autocalib.hpp"
-#include "chamo/stitching/detail/blenders.hpp"
-#include "chamo/stitching/detail/timelapsers.hpp"
-#include "chamo/stitching/detail/camera.hpp"
-#include "chamo/stitching/detail/exposure_compensate.hpp"
-#include "chamo/stitching/detail/matchers.hpp"
-#include "chamo/stitching/detail/motion_estimators.hpp"
-#include "chamo/stitching/detail/seam_finders.hpp"
-#include "chamo/stitching/detail/warpers.hpp"
+#include "chamo/stitching/panod/autocalib.hpp"
+#include "chamo/stitching/panod/blenders.hpp"
+#include "chamo/stitching/panod/timelapsers.hpp"
+#include "chamo/stitching/panod/camera.hpp"
+#include "chamo/stitching/panod/exposure_compensate.hpp"
+#include "chamo/stitching/panod/matchers.hpp"
+#include "chamo/stitching/panod/motion_estimators.hpp"
+#include "chamo/stitching/panod/seam_finders.hpp"
+#include "chamo/stitching/panod/warpers.hpp"
 #include "chamo/stitching/warpers.hpp"
 #include "opencv2/xfeatures2d/nonfree.hpp"
+#include <sensor_msgs/CompressedImage.h>
+#include <sensor_msgs/image_encodings.h>
+#include <geometry_msgs/QuaternionStamped.h>
+#include <geometry_msgs/Vector3Stamped.h>
+#include <ctime>
 void interDouble(double v1, double v2, double t1, double t2, double& v3_out, double t3){
     v3_out=v1+(v2-v1)*(t3-t1)/(t2-t1);
 }
@@ -46,6 +50,48 @@ Eigen::Matrix3d eular2matrix(Eigen::Vector3d rot){
     return rotationMatrix;
 }
 
+void StitchAlgo::switchPaint(){
+    if(is_paint==false){
+        std::cout<<"start!!"<<std::endl;
+        is_paint=true;
+    }else{
+        std::cout<<"end!!"<<std::endl;
+        is_paint=false;
+        if(true){
+            bag_ptr.reset(new rosbag::Bag());
+            time_t now = time(0);
+            tm *ltm = localtime(&now);
+            std::stringstream ss;
+            ss<<1900 + ltm->tm_year<<"_"<<1 + ltm->tm_mon<<"_"<<ltm->tm_mday<<"_"<<ltm->tm_hour<<"_"<<ltm->tm_min<<"_"<<ltm->tm_sec<<".bag";
+            std::string full_file_name=bag_root+"/"+ss.str();
+            std::cout<<full_file_name<<std::endl;
+            bag_ptr->open(full_file_name.c_str(), rosbag::bagmode::Write);
+            int count=0;
+            for (auto it=frame_pool.begin(); it!=frame_pool.end(); ++it){
+                geometry_msgs::QuaternionStamped dir_msg;
+                Eigen::Quaterniond qua(it->second->direction);
+                dir_msg.quaternion.x=qua.x();
+                dir_msg.quaternion.y=qua.y();
+                dir_msg.quaternion.z=qua.z();
+                dir_msg.quaternion.w=qua.w();
+                dir_msg.header.seq=count;
+                bag_ptr->write("dir", ros::Time(now+count), dir_msg);
+                sensor_msgs::CompressedImage img_ros_img;
+                std::vector<unsigned char> binaryBuffer_;
+                cv::imencode(".jpg", it->second->color_img, binaryBuffer_);
+                img_ros_img.data=binaryBuffer_;
+                img_ros_img.header.seq=count;
+                img_ros_img.format="jpeg";
+                bag_ptr->write("img", ros::Time(now+count), img_ros_img);
+                count++;
+                std::cout<<count<<std::endl;
+            }
+            bag_ptr->close();
+        }
+        FinalImg();
+    }
+}
+
 //int color2int(cv::Scalar color){
 //    int c;
 //    //c=color.r<<24+color.g<<24
@@ -58,6 +104,33 @@ StitchAlgo::StitchAlgo(){
     R_pano_w(2,0)=1;
     R_unity_w<<1, 0,  0, 0, 0, 1, 0, -1, 0;
     is_paint=false;
+    std::vector<Eigen::Vector2i> slot_uvs_temp;
+//    for (int v =900-300; v<900+301;v=v+300){
+//        for (int u =200; u<3600; u=u+400){
+//            slot_uvs_temp.push_back(Eigen::Vector2i(u,v));
+//        }
+//    }
+//    for (int v =900-600; v<900+601;v=v+1200){
+//        for (int u =300; u<3600; u=u+600){
+//            slot_uvs_temp.push_back(Eigen::Vector2i(u,v));
+//        }
+//    }
+    for (int v =900-200; v<900+201;v=v+200){
+        for (int u =150; u<3600; u=u+300){
+            slot_uvs_temp.push_back(Eigen::Vector2i(u,v));
+        }
+    }
+    for (int v =900-400; v<900+401;v=v+800){
+        for (int u =200; u<3600; u=u+400){
+            slot_uvs_temp.push_back(Eigen::Vector2i(u,v));
+        }
+    }
+    for (int v =900-600; v<900+601;v=v+1200){
+        for (int u =300; u<3600; u=u+600){
+            slot_uvs_temp.push_back(Eigen::Vector2i(u,v));
+        }
+    }
+
     for (float v = 0; v < 180; v = v + 0.1)
     {
         for (float u = 0; u < 360; u = u + 0.1) {
@@ -70,8 +143,15 @@ StitchAlgo::StitchAlgo(){
             uv.x()=u*10;
             uv.y()=v*10;
             sphere_pts_uv.push_back(uv);
+            for(int i=0; i<slot_uvs_temp.size(); i++){
+                if(slot_uvs_temp[i].x()==uv.x() && slot_uvs_temp[i].y()==uv.y()){
+                    slot_posis.push_back(posi);
+                    slot_uvs.push_back(slot_uvs_temp[i]);
+                }
+            }
         }
     }
+    std::cout<<"slot_posis.size: "<<slot_posis.size()<<std::endl;
     width=640;
     height=480;
     fx=945/1280.0*640.0;
@@ -99,6 +179,8 @@ StitchAlgo::StitchAlgo(){
     PANO::KeyFrame::mnMaxY = height;
     PANO::KeyFrame::mpORBextractor = new PANO::ORBextractor(2000,1.2,8,20,7);
     ClearImgSphere();
+    last_update_time = std::chrono::system_clock::now();
+    image_count=0;
 }
 
 PANO::KeyFrame* StitchAlgo::CreateNewFrame(cv::Mat img, Eigen::Matrix3d dir){
@@ -162,106 +244,6 @@ Eigen::Matrix<double,3,3> toMatrix3d(const cv::Mat &cvMat3)
     return M;
 }
 
-void StitchAlgo::AddNewFrame(PANO::KeyFrame *new_frame, bool& is_discard, std::vector<PANO::KeyFrame*>& candi_list, std::vector<PANO::KeyFrame*>& overlay_list){
-    is_discard=true;
-    if(pano_map->frames.size()==0){
-        pano_map->frames.push_back(new_frame);
-        is_discard=false;
-        return;
-    }
-    
-    PANO::Initializer init(*new_frame);
-    std::cout<<"candi_list: "<<candi_list.size()<<std::endl;
-    if(candi_list.size()==overlay_list.size()){
-        candi_list.clear();
-    }
-    for(int i=0; i<candi_list.size(); i++){
-        Eigen::Matrix3d rot_1_2;
-        PANO::ORBmatcher matcher;
-        matcher.debug_img_ref=new_frame->color_img;
-        matcher.debug_img_cur=candi_list[i]->color_img;
-        std::vector<cv::Point2f> vbPrevMatched;
-        std::vector<int> vnMatches12;
-        int match_count = matcher.SearchForInitialization(*new_frame, *candi_list[i], vnMatches12, 30);
-        std::cout<<"match count: "<<match_count<<std::endl;
-        int good_count =-1;
-        if(match_count>20){
-            cv::Mat R21;
-            cv::Mat t21;
-            std::vector<cv::Point3f> vP3D;
-            std::vector<bool> vbTriangulated;
-            good_count = init.Initialize(*candi_list[i], vnMatches12, R21, t21, vP3D, vbTriangulated);
-            std::cout<<"match final: "<<good_count<<std::endl;
-            if(good_count>0){
-                rot_1_2=toMatrix3d(R21.t());
-                PANO::GraphNode node;
-                node.frame1=new_frame;
-                node.frame2=candi_list[i];
-                node.rot_1_2=rot_1_2;
-                node.weight=good_count;
-                pano_map->rot_graph.push_back(node);
-                is_discard=false;
-            }
-        }
-    }
-    if(is_discard==false){
-        pano_map->frames.push_back(new_frame);
-        if(overlay_list.size()>0){
-            std::map<PANO::KeyFrame*, int> frame_score;
-            for(int i=0; i<overlay_list.size(); i++){
-                frame_score[overlay_list[i]]=0;
-            }
-            frame_score[new_frame]=0;
-            for(int i=0; i<pano_map->rot_graph.size(); i++){
-                std::map<PANO::KeyFrame*, int>::iterator it1=frame_score.find(pano_map->rot_graph[i].frame1);
-                std::map<PANO::KeyFrame*, int>::iterator it2=frame_score.find(pano_map->rot_graph[i].frame2);
-                std::map<PANO::KeyFrame*, int>::iterator it;
-                for(it=frame_score.begin(); it!=frame_score.end(); it++){
-                    it->second=it->second+pano_map->rot_graph[i].weight;
-                }
-                if(it1!=frame_score.end()){
-                    it1->second=it1->second-pano_map->rot_graph[i].weight;
-                }
-                if(it2!=frame_score.end()){
-                    it2->second=it2->second-pano_map->rot_graph[i].weight;
-                }
-            }
-            std::map<PANO::KeyFrame*, int>::iterator it;
-            int min_score=999999999;
-            PANO::KeyFrame* min_frame=NULL;
-            for(it=frame_score.begin(); it!=frame_score.end(); it++){
-                //std::cout<<it->second<<",";
-                if(it->second<min_score){
-                    min_score=it->second;
-                    min_frame=it->first;
-                }
-            }
-            if(min_frame==NULL){
-                return;
-            }
-            //std::cout<<"min_score: "<<min_score<<std::endl;
-            for(int i=pano_map->rot_graph.size()-1; i>=0; i--){
-                if(min_frame==pano_map->rot_graph[i].frame1 || min_frame==pano_map->rot_graph[i].frame2){
-                    pano_map->rot_graph.erase(pano_map->rot_graph.begin()+i);
-                }
-            }
-            for(int i=0; i<pano_map->frames.size(); i++){
-                if(pano_map->frames[i]==min_frame){
-                    pano_map->frames.erase(pano_map->frames.begin()+i);
-                    break;
-                }
-            }
-            if(min_frame==new_frame){
-                is_discard=true;
-            }
-            delete min_frame;
-            min_frame=NULL;
-        }
-    }else{
-        delete new_frame;
-    }
-}
-
 void StitchAlgo::DoOptimize(){
     if(pano_map->rot_graph.size()>0){
         BundleAdjustment(pano_map);
@@ -307,15 +289,19 @@ Mat rot2euler(const Mat & rotationMatrix)
     return euler;
 }
 
-void StitchAlgo::FinalImg(){
+cv::Mat StitchAlgo::FinalImg(){
     using namespace std;
     using namespace cv;
-    using namespace chamo::detail;
+    using namespace chamo::panod;
     using namespace chamo;
+    std::vector<PANO::KeyFrame*> temp_framelist;
+    for (auto it=frame_pool.begin(); it!=frame_pool.end(); ++it){
+        temp_framelist.push_back(it->second);
+    }
     auto time1 = std::chrono::steady_clock::now();
-    int num_images=pano_map->frames.size();
+    int num_images=temp_framelist.size();
     cv::Ptr<cv::Feature2D> finder=cv::xfeatures2d::SURF::create();
-    vector<chamo::detail::ImageFeatures> features(num_images);
+    vector<chamo::panod::ImageFeatures> features(num_images);
     vector<Mat> images(num_images);
     vector<string> img_names;
     vector<Size> full_img_sizes(num_images);
@@ -336,7 +322,7 @@ void StitchAlgo::FinalImg(){
         std::stringstream ss;
         ss<<i;
         img_names.push_back(ss.str());
-        full_img = pano_map->frames[i]->color_img;
+        full_img = temp_framelist[i]->color_img;
         full_img_sizes[i] = full_img.size();
         if (work_megapix < 0){
             img = full_img;
@@ -364,8 +350,8 @@ void StitchAlgo::FinalImg(){
     full_img.release();
     img.release();
     std::cout<<"Pairwise matching"<<std::endl;
-    vector<chamo::detail::MatchesInfo> pairwise_matches;
-    Ptr<chamo::detail::FeaturesMatcher> matcher;
+    vector<chamo::panod::MatchesInfo> pairwise_matches;
+    Ptr<chamo::panod::FeaturesMatcher> matcher;
     matcher = makePtr<BestOf2NearestMatcher>(false, match_conf);
     (*matcher)(features, pairwise_matches);
     matcher->collectGarbage();
@@ -379,7 +365,7 @@ void StitchAlgo::FinalImg(){
         img_names_subset.push_back(img_names[indices[i]]);
         img_subset.push_back(images[indices[i]]);
         full_img_sizes_subset.push_back(full_img_sizes[indices[i]]);
-        frame_subset.push_back(pano_map->frames[indices[i]]);
+        frame_subset.push_back(temp_framelist[indices[i]]);
     }
 
     images = img_subset;
@@ -389,7 +375,7 @@ void StitchAlgo::FinalImg(){
     num_images = static_cast<int>(img_names.size());
     if (num_images < 2){
         std::cout<<"Need more images"<<std::endl;;
-        return;
+        return cv::Mat();
     }
     Ptr<Estimator> estimator;
     estimator = makePtr<HomographyBasedEstimator>();
@@ -399,7 +385,7 @@ void StitchAlgo::FinalImg(){
         cam_conf.focal=PANO::KeyFrame::fx;
         cam_conf.ppx=PANO::KeyFrame::cx;
         cam_conf.ppy=PANO::KeyFrame::cy;
-        Eigen::Matrix3d& m=pano_map->frames[i]->direction;
+        Eigen::Matrix3d& m=temp_framelist[i]->direction;
         cv::Mat mc(3,3,CV_32F);
         mc.at<float>(0,0)=m(0,0);
         mc.at<float>(0,1)=m(0,1);
@@ -423,10 +409,10 @@ void StitchAlgo::FinalImg(){
         cameras[i].R.convertTo(R, CV_32F);
         cameras[i].R = R;
     }
-    Ptr<chamo::detail::BundleAdjusterBase> adjuster;
-    adjuster = makePtr<chamo::detail::BundleAdjusterRay>();
+    Ptr<chamo::panod::BundleAdjusterBase> adjuster;
+    adjuster = makePtr<chamo::panod::BundleAdjusterRay>();
     adjuster->setConfThresh(conf_thresh);
-    string ba_refine_mask = "xxxxx";
+    string ba_refine_mask = "_____";
     Mat_<uchar> refine_mask = Mat::zeros(3, 3, CV_8U);
     if (ba_refine_mask[0] == 'x') refine_mask(0,0) = 1;
     if (ba_refine_mask[1] == 'x') refine_mask(0,1) = 1;
@@ -436,7 +422,7 @@ void StitchAlgo::FinalImg(){
     adjuster->setRefinementMask(refine_mask);
     if (!(*adjuster)(features, pairwise_matches, cameras)){
         cout << "Camera parameters adjusting failed.\n";
-        return;
+        return cv::Mat();
     }
     vector<double> focals;
     for (size_t i = 0; i < cameras.size(); ++i){
@@ -473,7 +459,7 @@ void StitchAlgo::FinalImg(){
     warper_creator = makePtr<chamo::SphericalWarper>();
     if (!warper_creator){
         cout << "Can't create the following warper \n";
-        return;
+        return cv::Mat();
     }
 
     Ptr<RotationWarper> warper = warper_creator->create(static_cast<float>(warped_image_scale * seam_work_aspect));
@@ -515,7 +501,7 @@ void StitchAlgo::FinalImg(){
     compensator->feed(corners, images_warped, masks_warped);
     std::cout<<"Finding seams..."<<std::endl;
     Ptr<SeamFinder> seam_finder;
-    seam_finder = makePtr<chamo::detail::DpSeamFinder>(DpSeamFinder::COLOR_GRAD);
+    seam_finder = makePtr<chamo::panod::DpSeamFinder>(DpSeamFinder::COLOR_GRAD);
     seam_finder->find(images_warped_f, corners, masks_warped);
     // Release unused memory
     //images.clear();
@@ -627,7 +613,7 @@ void StitchAlgo::FinalImg(){
             else if (blend_type == Blender::FEATHER)
             {
                 FeatherBlender* fb = dynamic_cast<FeatherBlender*>(blender.get());
-                fb->setSharpness(1.f);
+                fb->setSharpness(0.1f);
                 std::cout<<"Feather blender, sharpness: " << fb->sharpness()<<std::endl;
                 
             }
@@ -681,6 +667,7 @@ void StitchAlgo::FinalImg(){
     auto time2 = std::chrono::steady_clock::now();
     auto diff = time2 - time1;
     std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
+    return sphere_img;
 }
 
 void StitchAlgo::CalSphereSurfaceByFrame(PANO::KeyFrame* frame){
@@ -709,53 +696,6 @@ void StitchAlgo::CalSphereSurfaceByFrame(PANO::KeyFrame* frame){
     }
 }
 
-void StitchAlgo::CalSphereSurface(Eigen::Matrix3d cur_dir){
-    auto time1 = std::chrono::steady_clock::now();
-    std::vector<PANO::KeyFrame*> candi_frames;
-    Eigen::Vector3d cur_on_sphere= getPointOnSphere(cur_dir);
-    for(int kk=0; kk<pano_map->frames.size(); kk++){
-        Eigen::Vector3d cam_on_sphere= getPointOnSphere(pano_map->frames[kk]->direction);
-        float angle_diff = CalRayAngle(cam_on_sphere, cur_on_sphere);
-        if(abs(radian2degree(angle_diff))<30){
-            candi_frames.push_back(pano_map->frames[kk]);
-        }
-    }
-    for(int i=0; i<sphere_pts.size(); i++){
-        int sphere_yaw=sphere_pts_uv[i].x();
-        int sphere_pitch=sphere_pts_uv[i].y();
-        if((sphere_pts[i]-cur_on_sphere).norm()>0.5){
-            continue;
-        }
-        bool get_color=false;
-        for(int kk=0; kk<candi_frames.size(); kk++)
-        {
-            Eigen::Vector3d posi_l = candi_frames[kk]->direction.transpose()*sphere_pts[i];
-            if(posi_l.z()<0){
-                continue;
-            }
-            double u=fx*posi_l.x()/posi_l.z()+cx;
-            double v=fy*posi_l.y()/posi_l.z()+cy;
-            //std::cout<<u<<" : "<<v<<std::endl;
-            if(u>=width*0.2 && u<=width*0.8 && v>=height*0.2 && v<=height*0.8){
-                if(sphere_yaw<0 || sphere_yaw>=3600){
-                    continue;
-                }
-                if(sphere_pitch<0 || sphere_pitch>=1800){
-                    continue;
-                }
-                get_color=true;
-                sphere_img.at<cv::Vec4b>(sphere_pitch, sphere_yaw)=candi_frames[kk]->color_img.at<cv::Vec4b>(v,u);
-            }
-        }
-        if(get_color==false){
-            sphere_img.at<cv::Vec4b>(sphere_pitch, sphere_yaw)=cv::Vec4b(0,0,0,0);
-        }
-    }
-    auto time2 = std::chrono::steady_clock::now();
-    auto diff = time2 - time1;
-    std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
-}
-
 bool detect_blur(DataItem data){
     //std::cout<<data.rot.norm()<<" : "<<data.acc.norm()<<std::endl;
     if(data.rot.norm()<0.1 && data.acc.norm()<0.1){
@@ -763,6 +703,23 @@ bool detect_blur(DataItem data){
     }else{
         return true;
     }
+}
+
+int StitchAlgo::check_in_slot(Eigen::Matrix3d dir){
+    Eigen::Vector3d pt_sphere = getPointOnSphere(dir);
+    for(int i=0; i<slot_posis.size(); i++){
+        if((pt_sphere-slot_posis[i]).norm()<0.03){
+            return i;
+        }
+    }
+    return -1;
+    
+}
+
+void StitchAlgo::AddData(cv::Mat img, Eigen::Matrix3d dir){
+    PANO::KeyFrame* frame = CreateNewFrame(img, dir);
+    frame_pool[image_count]=frame;
+    image_count++;
 }
 
 void StitchAlgo::AddImageSimple(cv::Mat img, double timestamp){
@@ -774,72 +731,36 @@ void StitchAlgo::AddImageSimple(cv::Mat img, double timestamp){
     align_img();
     while(!raw_data.empty()){
         if(is_paint==true){
-            DataItem data = raw_data.back();
-            cv::Mat imgUndistort;
-            cv::undistort(data.img, imgUndistort, K, DistCoef);
-            Eigen::Matrix3d R_w_b(data.dir);
-            Eigen::Matrix3d R_p_c=R_pano_w*R_w_b*R_b_c;
-            PANO::KeyFrame* frame = CreateNewFrame(imgUndistort, R_p_c);
-            pano_map->frames.push_back(frame);
-            CalSphereSurfaceByFrame(frame);
-            is_paint=false;
-        }
-        raw_data.pop();
-    }
-    
-}
-
-void StitchAlgo::AddImage(cv::Mat img, double timestamp){
-    latest_img=img.clone();
-    if(is_paint==false){
-        ImageItem imgitem;
-        imgitem.img=latest_img;
-        imgitem.time= timestamp;
-        raw_imgs.push_back(imgitem);
-        align_img();
-        while(!raw_data.empty()){
-            raw_data.pop();
-        }
-        return;
-    }
-    //std::cout<<"frame count: "<<pano_map->frames.size()<<std::endl;
-    ImageItem imgitem;
-    imgitem.img=latest_img;
-    imgitem.time= timestamp;
-    raw_imgs.push_back(imgitem);
-    align_img();
-    while(!raw_data.empty()){
-        DataItem data = raw_data.front();
-        if(!detect_blur(data)){
-            Eigen::Matrix3d R_w_b(data.dir);
-            Eigen::Matrix3d R_w_c=R_w_b*R_b_c;
-            std::vector<PANO::KeyFrame*> candi_list;
-            std::vector<PANO::KeyFrame*> overlay_list;
-            FindNearRay(R_w_c, candi_list, overlay_list);
-            if(candi_list.size()>0 || pano_map->frames.size()==0){
-                cv::Mat imgUndistort;
-                cv::undistort(data.img, imgUndistort, K, DistCoef);
-                PANO::KeyFrame* frame = CreateNewFrame(imgUndistort, R_w_c);
-                bool is_discard=true;
-                std::string discard_reason;
-                AddNewFrame(frame, is_discard, candi_list,overlay_list);
-                if(!is_discard){
-                    DoOptimize();
-                    //std::cout<<"frame count: "<<pano_map->frames.size()<<std::endl;
-                    //ClearImgSphere();
-                    CalSphereSurface(frame->direction);
-//                    cv::imshow("pano", sphere_img);
+            auto time_now = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsed_seconds = time_now-last_update_time;
+            if(elapsed_seconds.count()>2){
+                DataItem data = raw_data.back();
+                if(!detect_blur(data)){
+                    Eigen::Matrix3d R_w_b(data.dir);
+                    Eigen::Matrix3d R_p_c=R_pano_w*R_w_b*R_b_c;
+                    int slot_id= check_in_slot(R_p_c);
+                    if(slot_id!=-1){
+                        std::map<int, PANO::KeyFrame*>::iterator it=frame_pool.find(slot_id);
+                        if(it!=frame_pool.end()){
+                            delete it->second;
+                            it->second=NULL;
+                        }
+                        cv::Mat imgUndistort;
+                        cv::undistort(data.img, imgUndistort, K, DistCoef);
+                        
+                        PANO::KeyFrame* frame = CreateNewFrame(imgUndistort, R_p_c);
+                        frame_pool[slot_id]=frame;
+                        CalSphereSurfaceByFrame(frame);
+                        DrawMarder();
+                        last_update_time=std::chrono::system_clock::now();
+                    }
                 }
             }
         }
-        
-        
-//            auto time2 = std::chrono::system_clock::now();
-//            std::chrono::duration<double> elapsed_seconds = time2-time1;
-//            std::cout<< "elapsed time: " << elapsed_seconds.count() <<std::endl;
         raw_data.pop();
     }
 }
+
 void StitchAlgo::AddRot(Eigen::Quaterniond rot_angle,Eigen::Vector3d rot_speed, Eigen::Vector3d acc, double timestamp){
     Eigen::Matrix3d R_w_b(rot_angle);
     Eigen::Matrix3d R_p_c=R_pano_w*R_w_b*R_b_c;
@@ -927,11 +848,27 @@ cv::Mat StitchAlgo::GetRawImage(){
 
 void StitchAlgo::ClearImgSphere(){
     sphere_img=cv::Mat(1800, 3600, CV_8UC4);
-    for(int i=0; i<1800; i++){
-        for(int j=0; j<3600; j++){
-            sphere_img.at<cv::Vec4b>(i,j)=cv::Vec4b(255,255,255,255);
+    sphere_img.setTo(cv::Vec4b(255,255,255,255));
+    DrawMarder();
+}
+
+void StitchAlgo::DrawMarder(){
+    for(int k=0; k<slot_uvs.size(); k++){
+        bool used_slot=false;
+        for (auto it=frame_pool.begin(); it!=frame_pool.end(); ++it){
+            if((slot_posis[k]-getPointOnSphere(it->second->direction)).norm()<0.1 ){
+                used_slot=true;
+            }
+        }
+        if(!used_slot){
+            cv::circle(sphere_img, cv::Point(slot_uvs[k].x(), slot_uvs[k].y()), 30, cv::Scalar(0,0,255,255), 3);
         }
     }
+}
+
+void StitchAlgo::Reset(){
+    frame_pool.clear();
+    ClearImgSphere();
 }
     
 

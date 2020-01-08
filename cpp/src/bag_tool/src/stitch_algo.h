@@ -10,6 +10,11 @@
 #include <unordered_map>
 #include <queue>
 #include <mutex>
+#include <map>
+#include <chrono>
+#include <ctime>
+#include <ros/ros.h>
+#include <rosbag/bag.h>
 namespace PANO{
     class PanoMap;
     class KeyFrame;
@@ -42,18 +47,21 @@ public:
     cv::Mat GetRawImage();
     void ClearImgSphere();
     PANO::KeyFrame* CreateNewFrame(cv::Mat img, Eigen::Matrix3d dir);
-    void AddNewFrame(PANO::KeyFrame *new_frame, bool& is_discard, std::vector<PANO::KeyFrame*>& candi_list, std::vector<PANO::KeyFrame*>& overlay_list);
     void DoOptimize();
-    void CalSphereSurface(Eigen::Matrix3d cur_dir);
     void CalSphereSurfaceByFrame(PANO::KeyFrame* frame);
     void FindNearRay(Eigen::Matrix3d, std::vector<PANO::KeyFrame*>& candi_list, std::vector<PANO::KeyFrame*>& overlay_list);
-    void FinalImg();
+    cv::Mat FinalImg();
+    void Reset();
+    void switchPaint();
+    void AddData(cv::Mat img, Eigen::Matrix3d dir);
     Eigen::Quaterniond cam_dir;
-    bool is_paint;
+    std::string bag_root;
 private:
+    bool is_paint;
     void align_img();
     void update();
-    //std::vector<Eigen::Vector2d> GetGirdNearby(Eigen::Vector3d rot);
+    int check_in_slot(Eigen::Matrix3d dir);
+    void DrawMarder();
     std::queue<DataItem> raw_data;
     std::vector<RotItem> raw_rots;
     std::vector<ImageItem> raw_imgs;
@@ -67,6 +75,7 @@ private:
     std::vector<Eigen::Vector2i> sphere_pts_uv;
     cv::Mat K;
     cv::Mat DistCoef;
+    std::map<int, PANO::KeyFrame*> frame_pool;
     double width;
     double height;
     double fx;
@@ -74,6 +83,11 @@ private:
     double cx;
     double cy;
     PANO::PanoMap* pano_map;
+    std::vector<Eigen::Vector3d> slot_posis;
+    std::vector<Eigen::Vector2i> slot_uvs;
+    std::chrono::time_point<std::chrono::system_clock> last_update_time;
+    std::shared_ptr<rosbag::Bag> bag_ptr;
+    int image_count;
     
 };
 #endif

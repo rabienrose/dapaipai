@@ -1,49 +1,9 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                          License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
-// Copyright (C) 2009, Willow Garage Inc., all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of the copyright holders may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
+ 
 
 #include "precomp.hpp"
 using namespace cv;
 namespace chamo {
-namespace detail {
+namespace panod {
 
 static const float WEIGHT_EPS = 1e-5f;
 
@@ -81,6 +41,19 @@ void Blender::feed(InputArray _img, InputArray _mask, Point tl)
     Mat mask = _mask.getMat();
     Mat dst = dst_.getMat(ACCESS_RW);
     Mat dst_mask = dst_mask_.getMat(ACCESS_RW);
+//    if(img.cols!=dst.cols || img.rows!=dst.rows){
+//        std::cout<<img.cols<<" : "<<dst.cols<<std::endl;
+//        std::cout<<mask.rows<<" : "<<mask.rows<<std::endl;
+//        std::cout<<"img.cols!=dst.cols || img.rows!=dst.rows"<<std::endl;
+//    }
+//    for(int i=0; i<img.cols;i++){
+//        for(int j=0; j<img.rows;j++){
+//            if(mask.at<uchar>(j,i)){
+//                dst.at<Point3_<short>>(j,i)=img.at<Point3_<short>>(j,i);
+//                dst_mask.at<uchar>(j,i) |= mask.at<uchar>(j,i);
+//            }
+//        }
+//    }
 
     CV_Assert(img.type() == CV_16SC3);
     CV_Assert(mask.type() == CV_8U);
@@ -95,10 +68,14 @@ void Blender::feed(InputArray _img, InputArray _mask, Point tl)
 
         for (int x = 0; x < img.cols; ++x)
         {
-            if (mask_row[x]){
-                dst_row[dx + x] = src_row[x];
+            int final_u=dx + x;
+            if(final_u>=dst_.cols){
+                final_u=final_u-dst_.cols;
             }
-            dst_mask_row[dx + x] |= mask_row[x];
+            if (mask_row[x]){
+                dst_row[final_u] = src_row[x];
+            }
+            dst_mask_row[final_u] |= mask_row[x];
         }
     }
 }
@@ -626,5 +603,5 @@ void restoreImageFromLaplacePyrGpu(std::vector<UMat> &pyr)
 #endif
 }
 
-} // namespace detail
+} // namespace panod
 } // namespace cv

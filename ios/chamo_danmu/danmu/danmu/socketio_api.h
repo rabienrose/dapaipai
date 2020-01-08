@@ -1,0 +1,4 @@
+@interface SocketIOAPI:NSObject
+@end
+
+
