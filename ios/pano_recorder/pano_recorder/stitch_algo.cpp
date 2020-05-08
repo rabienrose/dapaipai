@@ -11,15 +11,15 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <time.h>
-#include "chamo/stitching/panod/autocalib.hpp"
-#include "chamo/stitching/panod/blenders.hpp"
-#include "chamo/stitching/panod/timelapsers.hpp"
-#include "chamo/stitching/panod/camera.hpp"
-#include "chamo/stitching/panod/exposure_compensate.hpp"
-#include "chamo/stitching/panod/matchers.hpp"
-#include "chamo/stitching/panod/motion_estimators.hpp"
-#include "chamo/stitching/panod/seam_finders.hpp"
-#include "chamo/stitching/panod/warpers.hpp"
+#include "chamo/stitching/detail/autocalib.hpp"
+#include "chamo/stitching/detail/blenders.hpp"
+#include "chamo/stitching/detail/timelapsers.hpp"
+#include "chamo/stitching/detail/camera.hpp"
+#include "chamo/stitching/detail/exposure_compensate.hpp"
+#include "chamo/stitching/detail/matchers.hpp"
+#include "chamo/stitching/detail/motion_estimators.hpp"
+#include "chamo/stitching/detail/seam_finders.hpp"
+#include "chamo/stitching/detail/warpers.hpp"
 #include "chamo/stitching/warpers.hpp"
 #include "opencv2/xfeatures2d/nonfree.hpp"
 #include <sensor_msgs/CompressedImage.h>
@@ -180,7 +180,6 @@ StitchAlgo::StitchAlgo(){
     PANO::KeyFrame::mpORBextractor = new PANO::ORBextractor(2000,1.2,8,20,7);
     ClearImgSphere();
     last_update_time = std::chrono::system_clock::now();
-    image_count=0;
 }
 
 PANO::KeyFrame* StitchAlgo::CreateNewFrame(cv::Mat img, Eigen::Matrix3d dir){
@@ -289,10 +288,10 @@ Mat rot2euler(const Mat & rotationMatrix)
     return euler;
 }
 
-cv::Mat StitchAlgo::FinalImg(){
+void StitchAlgo::FinalImg(){
     using namespace std;
     using namespace cv;
-    using namespace chamo::panod;
+    using namespace chamo::detail;
     using namespace chamo;
     std::vector<PANO::KeyFrame*> temp_framelist;
     for (auto it=frame_pool.begin(); it!=frame_pool.end(); ++it){
@@ -301,7 +300,7 @@ cv::Mat StitchAlgo::FinalImg(){
     auto time1 = std::chrono::steady_clock::now();
     int num_images=temp_framelist.size();
     cv::Ptr<cv::Feature2D> finder=cv::xfeatures2d::SURF::create();
-    vector<chamo::panod::ImageFeatures> features(num_images);
+    vector<chamo::detail::ImageFeatures> features(num_images);
     vector<Mat> images(num_images);
     vector<string> img_names;
     vector<Size> full_img_sizes(num_images);
@@ -350,8 +349,8 @@ cv::Mat StitchAlgo::FinalImg(){
     full_img.release();
     img.release();
     std::cout<<"Pairwise matching"<<std::endl;
-    vector<chamo::panod::MatchesInfo> pairwise_matches;
-    Ptr<chamo::panod::FeaturesMatcher> matcher;
+    vector<chamo::detail::MatchesInfo> pairwise_matches;
+    Ptr<chamo::detail::FeaturesMatcher> matcher;
     matcher = makePtr<BestOf2NearestMatcher>(false, match_conf);
     (*matcher)(features, pairwise_matches);
     matcher->collectGarbage();
@@ -375,7 +374,7 @@ cv::Mat StitchAlgo::FinalImg(){
     num_images = static_cast<int>(img_names.size());
     if (num_images < 2){
         std::cout<<"Need more images"<<std::endl;;
-        return cv::Mat();
+        return;
     }
     Ptr<Estimator> estimator;
     estimator = makePtr<HomographyBasedEstimator>();
@@ -409,10 +408,10 @@ cv::Mat StitchAlgo::FinalImg(){
         cameras[i].R.convertTo(R, CV_32F);
         cameras[i].R = R;
     }
-    Ptr<chamo::panod::BundleAdjusterBase> adjuster;
-    adjuster = makePtr<chamo::panod::BundleAdjusterRay>();
+    Ptr<chamo::detail::BundleAdjusterBase> adjuster;
+    adjuster = makePtr<chamo::detail::BundleAdjusterRay>();
     adjuster->setConfThresh(conf_thresh);
-    string ba_refine_mask = "_____";
+    string ba_refine_mask = "xxxxx";
     Mat_<uchar> refine_mask = Mat::zeros(3, 3, CV_8U);
     if (ba_refine_mask[0] == 'x') refine_mask(0,0) = 1;
     if (ba_refine_mask[1] == 'x') refine_mask(0,1) = 1;
@@ -422,7 +421,7 @@ cv::Mat StitchAlgo::FinalImg(){
     adjuster->setRefinementMask(refine_mask);
     if (!(*adjuster)(features, pairwise_matches, cameras)){
         cout << "Camera parameters adjusting failed.\n";
-        return cv::Mat();
+        return;
     }
     vector<double> focals;
     for (size_t i = 0; i < cameras.size(); ++i){
@@ -459,7 +458,7 @@ cv::Mat StitchAlgo::FinalImg(){
     warper_creator = makePtr<chamo::SphericalWarper>();
     if (!warper_creator){
         cout << "Can't create the following warper \n";
-        return cv::Mat();
+        return;
     }
 
     Ptr<RotationWarper> warper = warper_creator->create(static_cast<float>(warped_image_scale * seam_work_aspect));
@@ -501,7 +500,7 @@ cv::Mat StitchAlgo::FinalImg(){
     compensator->feed(corners, images_warped, masks_warped);
     std::cout<<"Finding seams..."<<std::endl;
     Ptr<SeamFinder> seam_finder;
-    seam_finder = makePtr<chamo::panod::DpSeamFinder>(DpSeamFinder::COLOR_GRAD);
+    seam_finder = makePtr<chamo::detail::DpSeamFinder>(DpSeamFinder::COLOR_GRAD);
     seam_finder->find(images_warped_f, corners, masks_warped);
     // Release unused memory
     //images.clear();
@@ -559,7 +558,7 @@ cv::Mat StitchAlgo::FinalImg(){
                 rois.push_back(roi);
             }
         }
-        if (abs(compose_scale - 1) > 1e-1) 
+        if (abs(compose_scale - 1) > 1e-1)
             resize(full_img, img, Size(), compose_scale, compose_scale, INTER_LINEAR_EXACT);
         else
             img = full_img;
@@ -667,7 +666,6 @@ cv::Mat StitchAlgo::FinalImg(){
     auto time2 = std::chrono::steady_clock::now();
     auto diff = time2 - time1;
     std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
-    return sphere_img;
 }
 
 void StitchAlgo::CalSphereSurfaceByFrame(PANO::KeyFrame* frame){
@@ -714,12 +712,6 @@ int StitchAlgo::check_in_slot(Eigen::Matrix3d dir){
     }
     return -1;
     
-}
-
-void StitchAlgo::AddData(cv::Mat img, Eigen::Matrix3d dir){
-    PANO::KeyFrame* frame = CreateNewFrame(img, dir);
-    frame_pool[image_count]=frame;
-    image_count++;
 }
 
 void StitchAlgo::AddImageSimple(cv::Mat img, double timestamp){

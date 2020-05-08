@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Chamo Pano Editor</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+        <link rel="stylesheet" href="css/main.css">
+        <script src="../build/jquery-1.12.4.min.js"></script>
+        <script type="module" src="js/global_init.js"></script>
+        <script type="module" src="js/react_part.js"></script>
+        
+        <script type="module" src="js/video_part.js"></script>
+
+        <script type="module" src="js/three_part.js"></script>
+        <script type="module" src="js/path_editor.js"></script>
+        <link rel="stylesheet" href="../build/leaflet.css"/>
+        <script src="../build/leaflet.js"></script>
+        <script type="module" src="js/leaflet_part.js"></script>
+
+        <script src="../build/react.development.js" crossorigin></script>
+        <script src="../build/react-dom.development.js" crossorigin></script>
+        <script src="../build/babel.min.js"></script>
+        
+        <script src="../build/proj4.js"></script>
+        <script src="../build/proj4leaflet.js"></script>
+        <script src="../build/leaflet.hotline.min.js"></script>
+	</head>
+	<body>
+        <div id="panel_root" class="chamo_border">
+            <div id="panel_1" class="chamo_border">
+                <div id="panel_1_1" class="chamo_border">
+                    <div id="panel_1_1_1">
+                    </div>
+                    <div id="panel_1_1_2">
+                        <video id="video" muted controls>
+                        </video>
+                    </div>
+                </div>
+                <div id="panel_1_2" class="chamo_border">
+                </div>
+            </div>
+            <div id="panel_2" class="chamo_border">
+                <div id="panel_2_1" class="chamo_border">
+                    <input id="load" class="span_all" type="file" multiple>
+                    <input id="save" class="span_all" type="button" value="Save">
+                    <a href="" id="download" style="display:none">Download Map</a>
+                    <div id="video_list" class="span_all"></div>
+                </div>
+                <div id="panel_2_2" class="chamo_border">
+                    <div id="panel_2_2_1">
+                    </div>
+                    <div id="panel_2_2_2"></div>
+                </div>
+                <div id="panel_2_3" class="chamo_border">
+                </div>
+            </div>
+        </div>
+	</body>
+</html>

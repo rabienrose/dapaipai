@@ -1,0 +1,372 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2230B6A223D2C76100CFB22A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2230B6A123D2C76100CFB22A /* AppDelegate.m */; };
+		2230B6A523D2C76100CFB22A /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2230B6A423D2C76100CFB22A /* SceneDelegate.m */; };
+		2230B6AB23D2C76100CFB22A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2230B6A923D2C76100CFB22A /* Main.storyboard */; };
+		2230B6AD23D2C76200CFB22A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2230B6AC23D2C76200CFB22A /* Assets.xcassets */; };
+		2230B6B023D2C76200CFB22A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2230B6AE23D2C76200CFB22A /* LaunchScreen.storyboard */; };
+		2230B6B323D2C76200CFB22A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2230B6B223D2C76200CFB22A /* main.m */; };
+		22BCEBBB23D98C7F00696034 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22BCEBBA23D98C7F00696034 /* CoreMedia.framework */; };
+		22BCEBBD23D98C8500696034 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22BCEBBC23D98C8500696034 /* CoreMotion.framework */; };
+		22BCEBBF23D98C8E00696034 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22BCEBBE23D98C8E00696034 /* CoreVideo.framework */; };
+		22BCEBC223D98E7700696034 /* stitch_algo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22BCEBC023D98E7600696034 /* stitch_algo.cpp */; };
+		22BCEBC423D98F2100696034 /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 22BCEBC323D98F2100696034 /* ViewController.mm */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		2230B69D23D2C76100CFB22A /* pano_recorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pano_recorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2230B6A023D2C76100CFB22A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		2230B6A123D2C76100CFB22A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		2230B6A323D2C76100CFB22A /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		2230B6A423D2C76100CFB22A /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
+		2230B6A623D2C76100CFB22A /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		2230B6AA23D2C76100CFB22A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		2230B6AC23D2C76200CFB22A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2230B6AF23D2C76200CFB22A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		2230B6B123D2C76200CFB22A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2230B6B223D2C76200CFB22A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		22BCEBBA23D98C7F00696034 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		22BCEBBC23D98C8500696034 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		22BCEBBE23D98C8E00696034 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
+		22BCEBC023D98E7600696034 /* stitch_algo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stitch_algo.cpp; sourceTree = "<group>"; };
+		22BCEBC123D98E7700696034 /* stitch_algo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stitch_algo.h; sourceTree = "<group>"; };
+		22BCEBC323D98F2100696034 /* ViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewController.mm; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2230B69A23D2C76100CFB22A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22BCEBBF23D98C8E00696034 /* CoreVideo.framework in Frameworks */,
+				22BCEBBD23D98C8500696034 /* CoreMotion.framework in Frameworks */,
+				22BCEBBB23D98C7F00696034 /* CoreMedia.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2230B69423D2C76100CFB22A = {
+			isa = PBXGroup;
+			children = (
+				2230B69F23D2C76100CFB22A /* pano_recorder */,
+				2230B69E23D2C76100CFB22A /* Products */,
+				22BCEBB923D98C7E00696034 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		2230B69E23D2C76100CFB22A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2230B69D23D2C76100CFB22A /* pano_recorder.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		2230B69F23D2C76100CFB22A /* pano_recorder */ = {
+			isa = PBXGroup;
+			children = (
+				22BCEBC323D98F2100696034 /* ViewController.mm */,
+				22BCEBC023D98E7600696034 /* stitch_algo.cpp */,
+				22BCEBC123D98E7700696034 /* stitch_algo.h */,
+				2230B6A023D2C76100CFB22A /* AppDelegate.h */,
+				2230B6A123D2C76100CFB22A /* AppDelegate.m */,
+				2230B6A323D2C76100CFB22A /* SceneDelegate.h */,
+				2230B6A423D2C76100CFB22A /* SceneDelegate.m */,
+				2230B6A623D2C76100CFB22A /* ViewController.h */,
+				2230B6A923D2C76100CFB22A /* Main.storyboard */,
+				2230B6AC23D2C76200CFB22A /* Assets.xcassets */,
+				2230B6AE23D2C76200CFB22A /* LaunchScreen.storyboard */,
+				2230B6B123D2C76200CFB22A /* Info.plist */,
+				2230B6B223D2C76200CFB22A /* main.m */,
+			);
+			path = pano_recorder;
+			sourceTree = "<group>";
+		};
+		22BCEBB923D98C7E00696034 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				22BCEBBE23D98C8E00696034 /* CoreVideo.framework */,
+				22BCEBBC23D98C8500696034 /* CoreMotion.framework */,
+				22BCEBBA23D98C7F00696034 /* CoreMedia.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2230B69C23D2C76100CFB22A /* pano_recorder */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2230B6B623D2C76200CFB22A /* Build configuration list for PBXNativeTarget "pano_recorder" */;
+			buildPhases = (
+				2230B69923D2C76100CFB22A /* Sources */,
+				2230B69A23D2C76100CFB22A /* Frameworks */,
+				2230B69B23D2C76100CFB22A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = pano_recorder;
+			productName = pano_recorder;
+			productReference = 2230B69D23D2C76100CFB22A /* pano_recorder.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2230B69523D2C76100CFB22A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1120;
+				ORGANIZATIONNAME = "zili wang";
+				TargetAttributes = {
+					2230B69C23D2C76100CFB22A = {
+						CreatedOnToolsVersion = 11.2.1;
+					};
+				};
+			};
+			buildConfigurationList = 2230B69823D2C76100CFB22A /* Build configuration list for PBXProject "pano_recorder" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 2230B69423D2C76100CFB22A;
+			productRefGroup = 2230B69E23D2C76100CFB22A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2230B69C23D2C76100CFB22A /* pano_recorder */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2230B69B23D2C76100CFB22A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2230B6B023D2C76200CFB22A /* LaunchScreen.storyboard in Resources */,
+				2230B6AD23D2C76200CFB22A /* Assets.xcassets in Resources */,
+				2230B6AB23D2C76100CFB22A /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2230B69923D2C76100CFB22A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2230B6A223D2C76100CFB22A /* AppDelegate.m in Sources */,
+				22BCEBC223D98E7700696034 /* stitch_algo.cpp in Sources */,
+				22BCEBC423D98F2100696034 /* ViewController.mm in Sources */,
+				2230B6B323D2C76200CFB22A /* main.m in Sources */,
+				2230B6A523D2C76100CFB22A /* SceneDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		2230B6A923D2C76100CFB22A /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2230B6AA23D2C76100CFB22A /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		2230B6AE23D2C76200CFB22A /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2230B6AF23D2C76200CFB22A /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		2230B6B423D2C76200CFB22A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		2230B6B523D2C76200CFB22A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		2230B6B723D2C76200CFB22A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = TYYBQ8K9M6;
+				INFOPLIST_FILE = pano_recorder/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "chamo.pano-recorder";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		2230B6B823D2C76200CFB22A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = TYYBQ8K9M6;
+				INFOPLIST_FILE = pano_recorder/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "chamo.pano-recorder";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2230B69823D2C76100CFB22A /* Build configuration list for PBXProject "pano_recorder" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2230B6B423D2C76200CFB22A /* Debug */,
+				2230B6B523D2C76200CFB22A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2230B6B623D2C76200CFB22A /* Build configuration list for PBXNativeTarget "pano_recorder" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2230B6B723D2C76200CFB22A /* Debug */,
+				2230B6B823D2C76200CFB22A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 2230B69523D2C76100CFB22A /* Project object */;
+}

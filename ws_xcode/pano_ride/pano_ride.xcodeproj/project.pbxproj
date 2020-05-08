@@ -1,0 +1,73 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXFileReference section */
+		224BC4EA2455375800539190 /* pano_ride */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pano_ride; path = ../../pano_ride; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		224BC4E32455374200539190 = {
+			isa = PBXGroup;
+			children = (
+				224BC4EA2455375800539190 /* pano_ride */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		224BC4E42455374300539190 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1120;
+			};
+			buildConfigurationList = 224BC4E72455374300539190 /* Build configuration list for PBXProject "pano_ride" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 224BC4E32455374200539190;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		224BC4E82455374300539190 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		224BC4E92455374300539190 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		224BC4E72455374300539190 /* Build configuration list for PBXProject "pano_ride" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				224BC4E82455374300539190 /* Debug */,
+				224BC4E92455374300539190 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 224BC4E42455374300539190 /* Project object */;
+}
