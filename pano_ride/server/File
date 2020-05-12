@@ -1,0 +1,32 @@
+
+close_camera();try {
+    if (mScuManager != null) {
+        // mScuManager.unregisterCallback(mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_LOCAT_DATA), mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_LOCAT_DATA_2), mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_FEATURE_DATA_1), mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_FEATURE_DATA_2), mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_BOX_DATA_1), mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_BOX_DATA_2), mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_FRONT_RADAR_DATA), mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_TAIL_RADAR_DATA), mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_PARKING_TSK_TIME), mEcuEventCallback);
+        mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_SLOT_VOICE), mEcuEventCallback);
+
+        mVcuManager.unregisterPropCallback(Collections.singletonList(mVcuManager.ID_VCU_GEAR_LEVEL), mEcuEventCallback);
+        mBcmManager.unregisterPropCallback(Collections.singletonList(mBcmManager.ID_BCM_DOOR_CENTRAL_LOCK_MODE), mEcuEventCallback);
+        mMcuManager.unregisterPropCallback(Collections.singletonList(mMcuManager.ID_MCU_IG_STATUS), mEcuEventCallback);
+
+        //E28
+        if (carType == 2)
+        {
+            mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_FEATURE_DATA), mEcuEventCallback);
+            mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_L_AVM_SLOT), mEcuEventCallback);
+            mScuManager.unregisterPropCallback(Collections.singletonList(mScuManager.ID_SCU_R_AVM_SLOT), mEcuEventCallback);
+        }
+    }
+    mCar.disconnect();// disconnect 时会主动清除所有 callbacks
+
+} catch (Exception e) {
+    e.printStackTrace();
+}

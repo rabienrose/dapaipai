@@ -19,6 +19,7 @@
     <label for="scene_id">Scene Name: </label><input type="text" id="scene_id"><br/>
     <label>insv: </label><input type="file" id="insv"><button onclick="upload_insv()">Upload</button><a id="insv_p"></a><br/>
     <label>mp4: </label><input type="file" id="MP4"><button onclick="upload_mp4()">Upload</button><a id="MP4_p"></a><br/>
+    <button onclick="stop_process()">Send Stop Request</button><br/>
     <button onclick="show_task_status()">Update</button><br/>
     action: <a id="progress_action"></a><br/>
     progress: <a id="progress_rate"></a><br/>
@@ -27,12 +28,14 @@
     free disk: <a id="free_disk"></a><br/>
     err info: <a id="err_info"></a><br/>
     extract type(jpg/png):<input type="text" id="extract_type" value="jpg"><br/>
-    jpg quality(1-100):<input type="text" id="jpg_quality" value="15"><br/>
-    frame per meter(2-31):<input type="text" id="frame_per_meter" value="1"><br/>
+    jpg quality(2-31):<input type="text" id="jpg_quality" value="15"><br/>
+    frame per meter(0.1-5):<input type="text" id="frame_per_meter" value="1"><br/>
     out resolution(720-2000):<input type="text" id="out_resolution" value="720"><br/>
     out quality(2-31):<input type="text" id="out_quality" value="15"><br/>
-    <button onclick="show_raw_list()">Show</button>
+    <button onclick="fetch_list()">Show</button><br/>
+    Raw Files
     <div id="raw_list"></div>
+    Maps
     <div id="map_list"></div>
     
 </body>

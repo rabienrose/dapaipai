@@ -35,6 +35,9 @@ def sub_save_file(input_file, start, end):
     save_file.close()
 
 def extract_meta(workspace,file_name, progress, err_msg):
+    out_path = workspace+"/meta.json"
+    if os.path.exists(out_path):
+        os.remove(out_path)
     progress[0]=0
     input_file = open(workspace+"/"+file_name, 'rb')
     input_file.seek(-1,2)
@@ -193,19 +196,16 @@ def extract_meta(workspace,file_name, progress, err_msg):
     cur_gps_pos=0
     for i in range(len(img_times)):
         img_time=img_times[i]
-        image_data={}
+        image_data={'acc':0, 'gyro':0, 'gps':[0,0,0], 'speed':0, 'track':0}
         image_data['time']=img_time
-        for j in range(cur_imu_pos, 10000000000):
-            if j>=len(imu_times)-1:
-                break;
+        for j in range(cur_imu_pos, len(imu_times)-1):
             if imu_times[j]<img_time and imu_times[j+1]>=img_time:
+                
                 image_data['acc']=accs[j]
                 image_data['gyro']=gyros[j]
                 cur_imu_pos=j
                 break;
-        for j in range(cur_gps_pos, 10000000000):
-            if j>=len(gps_times)-1:
-                break;
+        for j in range(cur_gps_pos, len(gps_times)-1):
             if gps_times[j]<img_time and gps_times[j+1]>=img_time:
                 image_data['gps']=gpss[j]
                 image_data['speed']=gps_speeds[j]
@@ -213,12 +213,11 @@ def extract_meta(workspace,file_name, progress, err_msg):
                 cur_gps_pos=j
                 break;
         if not 'acc' in image_data.keys():
-            break
+            continue
 #        if not 'gps' in image_data:
 #            break
         image_datas.append(image_data)
     progress[0]=100
-    out_path = workspace+"/meta.json"
     json_data = json.dumps(image_datas)
     fileObject = open(out_path, 'w')
     fileObject.write(json_data)
@@ -226,10 +225,11 @@ def extract_meta(workspace,file_name, progress, err_msg):
     return True
 
 if __name__ == "__main__":
-    workspace="/workspace/raw_files/office"
-    file_name="chamo.insv"
+    workspace="/workspace/"
+    file_name="test2.insv"
     progress=[0]
-    extract_meta(workspace,file_name,progress)
+    err_msg=[""]
+    extract_meta(workspace,file_name,progress, err_msg)
     
     
     

@@ -29,6 +29,8 @@ def filter_imgs(workspace, frame_per_meter, err, progress):
     src_imgs=root+"/imgs"
     out_imgs=root+"/out_imgs"
     out_meta=root+"/frame_info.csv"
+    if os.path.exists(out_meta):
+        os.remove(out_meta)
     if not os.path.exists(config_file):
         print(config_file)
         print("[filter_imgs] meta.json not exist !!!")
@@ -62,7 +64,7 @@ def filter_imgs(workspace, frame_per_meter, err, progress):
     mis_align_rate = len(meta_data)/len(img_name_list)-1
     if abs(mis_align_rate)>0.01:
         print(abs(mis_align_rate))
-        err[0]="video length and data mismatch!"
+        err[0]="video length and data mismatch: "+str(len(meta_data))+"|"+str(len(img_name_list))
         return False
     data_time_end=meta_data[len(meta_data)-1]['time']
     data_time_diff=data_time_end - meta_data[0]['time']
@@ -130,4 +132,5 @@ def filter_imgs(workspace, frame_per_meter, err, progress):
 
 if __name__ == "__main__":
     err_msg=['']
-    filter_imgs("/workspace/raw_files/office", 1, err_msg)
+    progress=[0]
+    filter_imgs("/workspace", 1, err_msg)
