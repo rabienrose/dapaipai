@@ -1,0 +1,93 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXFileReference section */
+		220C484224C3FB4F0075B2E9 /* bili_tool */ = {isa = PBXFileReference; lastKnownFileType = folder; name = bili_tool; path = ../bili_tool; sourceTree = "<group>"; };
+		220C484324C408B00075B2E9 /* try_live_msg.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = try_live_msg.py; path = ../try_live_msg.py; sourceTree = "<group>"; };
+		222C9D0024C358EC0007E7EB /* danmaku */ = {isa = PBXFileReference; lastKnownFileType = folder; name = danmaku; path = ../danmaku; sourceTree = "<group>"; };
+		222C9D0124C35DA80007E7EB /* start_ffmpeg.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = start_ffmpeg.sh; path = ../start_ffmpeg.sh; sourceTree = "<group>"; };
+		22385B4B24BF2F510029AC46 /* life_game.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = life_game.py; path = ../life_game.py; sourceTree = "<group>"; };
+		22385B4C24BF78660029AC46 /* start_game.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = start_game.sh; path = ../start_game.sh; sourceTree = "<group>"; };
+		228C1E8D24C0135600C0D95F /* try_text.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = try_text.py; path = ../try_text.py; sourceTree = "<group>"; };
+		22A3AA0924BD5E6900D72BEE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		22A3AA0A24BD5E6900D72BEE /* bilibili.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = bilibili.py; path = ../bilibili.py; sourceTree = "<group>"; };
+		22A3AA0B24BD7BF000D72BEE /* place.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = place.py; path = ../place.py; sourceTree = "<group>"; };
+		22A3AA0C24BD7C5100D72BEE /* push_file.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = push_file.sh; path = ../push_file.sh; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		22A3A9E724BD5E5B00D72BEE = {
+			isa = PBXGroup;
+			children = (
+				220C484324C408B00075B2E9 /* try_live_msg.py */,
+				220C484224C3FB4F0075B2E9 /* bili_tool */,
+				222C9D0124C35DA80007E7EB /* start_ffmpeg.sh */,
+				222C9D0024C358EC0007E7EB /* danmaku */,
+				228C1E8D24C0135600C0D95F /* try_text.py */,
+				22385B4C24BF78660029AC46 /* start_game.sh */,
+				22385B4B24BF2F510029AC46 /* life_game.py */,
+				22A3AA0C24BD7C5100D72BEE /* push_file.sh */,
+				22A3AA0B24BD7BF000D72BEE /* place.py */,
+				22A3AA0A24BD5E6900D72BEE /* bilibili.py */,
+				22A3AA0924BD5E6900D72BEE /* README.md */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		22A3A9E824BD5E5B00D72BEE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1120;
+			};
+			buildConfigurationList = 22A3A9EB24BD5E5B00D72BEE /* Build configuration list for PBXProject "live_danmu" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 22A3A9E724BD5E5B00D72BEE;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		22A3A9EC24BD5E5B00D72BEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		22A3A9ED24BD5E5B00D72BEE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		22A3A9EB24BD5E5B00D72BEE /* Build configuration list for PBXProject "live_danmu" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22A3A9EC24BD5E5B00D72BEE /* Debug */,
+				22A3A9ED24BD5E5B00D72BEE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 22A3A9E824BD5E5B00D72BEE /* Project object */;
+}

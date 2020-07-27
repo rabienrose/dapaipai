@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="1894.1">
+  <link rel="stylesheet" href="edit.css">
+  <script src="../js/build/aliyun-oss-sdk-4.4.4.min.js"></script>
+  <script src="../js/build/jquery-1.12.4.min.js"></script>
+  <script src="../js/build/three.min.js"></script>
+  <script src="../js/build/leaflet.js"></script>
+  <link rel="stylesheet" href="../js/build/leaflet.css"/>
+  <script src="../js/edit.js"></script>
+  <script type="text/javascript">
+  </script>
+</head>
+<body>
+    <div id="panel_root" class="chamo_border">
+        <div id="panel_1" class="chamo_border">
+            <div id="panel_1_1" class="chamo_border">
+            </div>
+            <div id="panel_1_2" class="chamo_border">
+                <div id="panel_1_2_1" class="chamo_border">
+                    <iframe src="edit_list.html" id="list_frame"></iframe>
+                </div>
+                <div id="panel_1_2_2" class="chamo_border">
+                    <button onclick='save()'>Save</button></br>
+                    <button onclick='show("begin")'>Show Begin</button>
+                    <button onclick='show("end")'>Show End</button>
+                    <button onclick='set_frame("begin")'>Set Begin</button>
+                    <button onclick='set_frame("end")'>Set End</button></br>
+                    <button onclick='play()'>Play</button>
+                    <button onclick='speed_up()'>Speed Up</button>
+                    <button onclick='speed_down()'>Slow Down</button>
+                </div>
+            </div>
+        </div>
+        <div id="panel_2" class="chamo_border">
+            <div id="panel_2_1" class="chamo_border">
+                <div id="panel_2_1_1">
+                    <video id="start_video" width="400" height="200" controls class="video_full" crossorigin="anonymous"></video>
+                </div>
+                <div id="panel_2_1_2">
+                    <button onclick='step(-10,"begin")' class="step_button">Last 10</button>
+                    <button onclick='step(-1,"begin")' class="step_button">Last 1</button>
+                    <button onclick='step(1,"begin")' class="step_button">Next 1</button>
+                    <button onclick='step(10,"begin")' class="step_button">Next 10</button>
+                </div>
+                
+            </div>
+            <div id="panel_2_2" class="chamo_border">
+                <div id="panel_2_2_1">
+                    <video id="end_video" width="400" height="200" controls class="video_full" crossorigin="anonymous"></video>
+                </div>
+                <div id="panel_2_2_2">
+                    <button onclick='step(-10,"end")' class="step_button">Last 10</button>
+                    <button onclick='step(-1,"end")' class="step_button">Last 1</button>
+                    <button onclick='step(1,"end")' class="step_button">Next 1</button>
+                    <button onclick='step(10,"end")' class="step_button">Next 10</button>
+                </div>
+            </div>
+            <div id="panel_2_3" class="chamo_border">
+                <div id="panel_2_3_1">
+                </div>
+                <div id="panel_2_3_2">
+                    <video id="video_pano" muted controls crossorigin="anonymous">
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>
+
+

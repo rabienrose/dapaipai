@@ -28,7 +28,7 @@ def filter_imgs(workspace, frame_per_meter, err, progress):
     config_file=root+"/meta.json"
     src_imgs=root+"/imgs"
     out_imgs=root+"/out_imgs"
-    out_meta=root+"/frame_info.csv"
+    out_meta=root+"/frame_info.json"
     if os.path.exists(out_meta):
         os.remove(out_meta)
     if not os.path.exists(config_file):
@@ -120,14 +120,15 @@ def filter_imgs(workspace, frame_per_meter, err, progress):
             out_img_count=out_img_count+1
             out_file_name = "chamo_"+'{:06d}'.format(out_img_count)+"."+img_type
             shutil.copyfile(src_imgs+"/"+file_name, out_imgs+"/"+out_file_name)
-            gps=meta_data[i]['gps']
-            acc=meta_data[i]['acc']
-            info=[gps[0],gps[1],gps[2], acc[1]]
-            img_meta_list.append(info)
+            if out_img_count%10==0:
+                gps=meta_data[i]['gps']
+                acc=meta_data[i]['acc']
+                info=[gps[0],gps[1],gps[2], acc[1], out_img_count]
+                img_meta_list.append(info)
     fileObject = open(out_meta, 'w')
-    for item in img_meta_list:
-        record_str=str(item[0])+","+str(item[1])+","+str(item[2])+","+str(item[3])+"\n";
-        fileObject.write(record_str)
+    json_data = json.dumps(img_meta_list)
+    fileObject.write(json_data)
+    fileObject.close()
     return True
 
 if __name__ == "__main__":
