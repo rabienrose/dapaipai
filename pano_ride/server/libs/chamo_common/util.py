@@ -7,6 +7,10 @@ from shutil import copyfile
 from os.path import isfile, join
 import pyproj
 import math
+import os
+import oss2
+import pymongo
+
 
 _projections = {}
 def zone(coordinates):
@@ -137,5 +141,40 @@ def get_rank_info(file_name, trim_op=-1):
         re=trim_re
     f.close()
     return re
-
     
+def read_json_from_oss(oss_addr, pre, bucket):
+    temp_file=pre+"temp_file.json"
+    exist = bucket.object_exists(oss_addr)
+    print(oss_addr)
+    re_data=[]
+    if exist:
+        bucket.get_object_to_file(oss_addr, temp_file)
+        f = open(temp_file, "r")
+        try:
+            re_data = json.load(f)
+        except TypeError:
+            print("Unable to deserialize the object")
+        f.close()
+    return re_data
+
+def get_dist2d(v1, v2):
+    x = v1[0]-v2[0]
+    y = v1[1]-v2[1]
+    return math.sqrt(x*x+y*y)
+    
+def get_sub2d(v1, v2):
+    x = v1[0]-v2[0]
+    y = v1[1]-v2[1]
+    return [x,y]
+    
+def set_task_status(oss_file, task, status, task_table):
+    myquery = { "name": oss_file }
+    newvalues = { "$set": { "task": task, "status": status} }
+    task_table.update_one(myquery, newvalues, True)
+    return
+
+def get_task_list(task, status, task_table):
+    task_list=[]
+    for x in traj_table.find({"task":task, "status":status},{"_id":0,"name":1}):
+        task_list.append(x["name"])
+    return task_list

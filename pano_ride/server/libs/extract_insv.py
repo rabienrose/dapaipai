@@ -36,6 +36,7 @@ def sub_save_file(input_file, start, end):
 
 def extract_meta(workspace,file_name, progress, err_msg):
     out_path = workspace+"/meta.json"
+    out_imu_path=workspace+"/imu0.csv"
     if os.path.exists(out_path):
         os.remove(out_path)
     progress[0]=0
@@ -61,7 +62,7 @@ def extract_meta(workspace,file_name, progress, err_msg):
             break
         input_file.seek(-3,1)
     if start_pos==-1 or file_size-start_pos>10000:
-        err_msg[0]="insv parse error"
+        err_msg[0]=-13
         return False
     progress[0]=10
     for i in range(10):
@@ -70,8 +71,8 @@ def extract_meta(workspace,file_name, progress, err_msg):
         tag = struct.unpack('<H', data)[0]
         data=input_file.read(4)
         length = struct.unpack('<I', data)[0]
-#        print(hex(input_file.tell()))
-#        print(hex(tag))
+        print(hex(input_file.tell()))
+        print(hex(tag))
         if tag==0x200:
             input_file.seek(-6,1)
             input_file.seek(-length,1)
@@ -101,7 +102,7 @@ def extract_meta(workspace,file_name, progress, err_msg):
                 gy = struct.unpack('<d', data)[0]
                 data=input_file.read(8)
                 gz = struct.unpack('<d', data)[0]
-                accs.append([ax, ay, az])
+                accs.append([ax*9.8, ay*9.8, az*9.8])
                 gyros.append([gx, gy, gz])
                 imu_times.append(timestamp/1000.0)
             input_file.seek(-length,1)
@@ -115,6 +116,7 @@ def extract_meta(workspace,file_name, progress, err_msg):
                 print("img time data err!!!!!!!")
                 break
             img_time_count=int(img_time_count)
+#            print(hex(input_file.tell()))
             for j in range(img_time_count):
                 data=input_file.read(8)
                 timestamp = struct.unpack('<Q', data)[0]
@@ -151,21 +153,63 @@ def extract_meta(workspace,file_name, progress, err_msg):
                 gps_times.append(timestamp)
                 gps_speeds.append(speed)
                 gps_tracks.append(track)
-#            break;
+            input_file.seek(-length,1)
+            continue
+        if tag==0x800:
+            input_file.seek(-6,1)
+            input_file.seek(-length,1)
+            x800_count=length/22
+            print("x800_count: "+str(x800_count))
+#            input_file.seek(-length,1)
+            continue
+        if tag==0x900:
+            input_file.seek(-6,1)
+            input_file.seek(-length,1)
+            count=int(length/48)
+            first_time=-1
+            last_time=-1
+            for j in range(count):
+                data=input_file.read(4)
+                val = struct.unpack('<i', data)[0]
+                if first_time==-1:
+                    first_time=val
+                #print(j,val,val-first_time, val-last_time)
+                data=input_file.read(4)
+                val1 = struct.unpack('<i', data)[0]
+                data=input_file.read(4)
+                val2 = struct.unpack('<f', data)[0]
+                data=input_file.read(8)
+                val3 = struct.unpack('<d', data)[0]
+#                data=input_file.read(4)
+#                val4 = struct.unpack('<f', data)[0]
+#                data=input_file.read(4)
+#                val5 = struct.unpack('<f', data)[0]
+#                data=input_file.read(4)
+#                val6 = struct.unpack('<f', data)[0]
+#                data=input_file.read(4)
+#                val7 = struct.unpack('<f', data)[0]
+#                data=input_file.read(4)
+#                val8 = struct.unpack('<f', data)[0]
+#                print(hex(val1))
+                last_time=val
+                input_file.read(44-16)
+            input_file.seek(-length,1)
+            continue
         input_file.seek(-6,1)
         if input_file.tell()-length>0:
             input_file.seek(-length,1)
     if len(gps_times)==0 or len(imu_times)==0 or len(img_times)==0:
-        err_msg[0]="insv no gps!!"
+        err_msg[0]=-12
         return False
     imu_time_diff=imu_times[len(imu_times)-1] - imu_times[0]
     print("imu time elapse:"+str(imu_time_diff))
     img_time_diff=img_times[len(img_times)-1] - img_times[0]
     print("img time elapse:"+str(img_time_diff))
-    gps_time_diff=gps_times[len(gps_times)-1] - gps_times[0]
-    print("gps time elapse:"+str(gps_time_diff))
+    if len(gps_times)>0:
+        gps_time_diff=gps_times[len(gps_times)-1] - gps_times[0]
+        print("gps time elapse:"+str(gps_time_diff))
     if abs(gps_time_diff-img_time_diff)>5 or abs(gps_time_diff-imu_time_diff)>5:
-        err_msg[0]="insv gps imu img time error"
+        err_msg[0]=-11
         return False
     progress[0]=50
     last_gps_time=0
@@ -190,17 +234,25 @@ def extract_meta(workspace,file_name, progress, err_msg):
                 last_gps_time=gps_times[i]
             else:
                 same_gps_count=same_gps_count+1
-            
     image_datas=[]
     cur_imu_pos=0
     cur_gps_pos=0
+    f_out=open(out_imu_path,"w")
+    f_out.write("timestamp,omega_x,omega_y,omega_z,alpha_x,alpha_y,alpha_z\n")
+    for i in range(len(imu_times)):
+        str_imu_data=""
+        time_stamp_str= str(int(imu_times[i]*1000000000)+150000000000000000)
+        str_imu_data=str_imu_data+time_stamp_str+","
+        str_imu_data=str_imu_data+str(gyros[i][0])+","+str(gyros[i][1])+","+str(gyros[i][2])+","
+        str_imu_data=str_imu_data+str(accs[i][0])+","+str(accs[i][1])+","+str(accs[i][2])+"\n"
+        f_out.write(str_imu_data)
+    f_out.close()
     for i in range(len(img_times)):
         img_time=img_times[i]
         image_data={'acc':0, 'gyro':0, 'gps':[0,0,0], 'speed':0, 'track':0}
         image_data['time']=img_time
         for j in range(cur_imu_pos, len(imu_times)-1):
             if imu_times[j]<img_time and imu_times[j+1]>=img_time:
-                
                 image_data['acc']=accs[j]
                 image_data['gyro']=gyros[j]
                 cur_imu_pos=j
@@ -212,10 +264,6 @@ def extract_meta(workspace,file_name, progress, err_msg):
                 image_data['track']=gps_tracks[j]
                 cur_gps_pos=j
                 break;
-        if not 'acc' in image_data.keys():
-            continue
-#        if not 'gps' in image_data:
-#            break
         image_datas.append(image_data)
     progress[0]=100
     json_data = json.dumps(image_datas)
@@ -225,8 +273,8 @@ def extract_meta(workspace,file_name, progress, err_msg):
     return True
 
 if __name__ == "__main__":
-    workspace="/workspace/"
-    file_name="test2.insv"
+    workspace="insv_ws"
+    file_name="20200825-yue-smalltestA01.insv"
     progress=[0]
     err_msg=[""]
     extract_meta(workspace,file_name,progress, err_msg)

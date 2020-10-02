@@ -232,7 +232,7 @@ def process_raw_thread(params):
         print(action)
         re = convert_insv(video_name, err_msg)
         loca_mp4_file = local_raw_root+"/"+video_name+"/"+"chamo.MP4"
-        oss_mp4_file = oss_shangrila_mid+"/"+video_name+"/"+"chamo.MP4"
+        oss_mp4_file = dst_oss_folder+video_name+"/"+"chamo.MP4"
         bucket.put_object_from_file(oss_mp4_file, loca_mp4_file)
     if bStop:
         bStop=False

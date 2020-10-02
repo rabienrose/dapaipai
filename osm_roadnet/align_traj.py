@@ -158,6 +158,12 @@ def find_path(graph, start, end, path=[]):
             newpath = find_path(graph, node, end, path)
             if newpath: return newpath
     return None
+    
+def find_node_in_db(node_id):
+    return
+    
+def add_new_node(node_info):
+    return
 
 #video_name="dongxiaokou2"
 #download_video(video_name+".insv", bucket, oss_shangrila_insv)
@@ -166,15 +172,15 @@ if draw_map:
     plt.figure(figsize=(20,20))
 f = open("frame_info.json", "r")
 traj = json.load(f)
-#
+
 #rect_str = get_aera_traj(traj)
 #print(rect_str)
-##response = api.get('way('+rect_str+')[highway];(._; >;);', responseformat="json")
 #response = api.get('way('+rect_str+')["highway"~"primary|secondary|tertiary"];(._; >;);', responseformat="json")
 #temp_file="temp_file.json"
 #f = open(temp_file, "w")
 #json.dump(response, f)
 #f.close()
+#quit()
 #response = api.get('way(202255194);(._;>;)', responseformat="json")
 #pp.pprint(response)
 
@@ -215,7 +221,6 @@ for i in range(len(re_data["elements"])):
 traj_posis=[]
 ori_gps=[]
 for i in range(len(traj)):
-    print(traj[i])
     posi = project((traj[i][1], traj[i][0]))
     if len(ori_gps)==0:
         ori_gps=[posi[2], posi[3]]
@@ -259,41 +264,59 @@ for i in all_ways:
 if draw_map:
     show_maps([], "chamo", True,[0,0,0],"dotted")
 
-merge_mp_pts=[]
+merge_map_pts=[]
 way_range=[]
 for i in range(len(all_ways_posi)):
     for j in range(1,len(all_ways_posi[i])):
         kfs = inter_seg(all_ways_posi[i][j-1], all_ways_posi[i][j])
-        merge_mp_pts.append(all_ways_posi[i][j-1])
+        merge_map_pts.append(all_ways_posi[i][j-1])
         way_range.append([i,j,0])
         for k in range(len(kfs)):
-            merge_mp_pts.append(kfs[k])
+            merge_map_pts.append(kfs[k])
             way_range.append([i,j,k+1])
-        merge_mp_pts.append(all_ways_posi[i][j])
+        merge_map_pts.append(all_ways_posi[i][j])
         way_range.append([i,j,len(kfs)+1])
 
-all_kfs_np = np.array(merge_mp_pts)
-tree = sn.KDTree(all_kfs_np, leaf_size=10)
-all_traj_np=np.array(traj_posis)
+merge_map_pts_np = np.array(merge_map_pts)
+print(merge_map_pts_np.shape)
+tree = sn.KDTree(merge_map_pts_np, leaf_size=10)
+query_list=[traj_posis[0], traj_posis[-1]]
+all_traj_np=np.array(query_list)
 dist, ind = tree.query(all_traj_np, k=1)
 res = ind.reshape(1, len(all_traj_np)).tolist()[0]
-#start_way=way_range[res[0]][0]
-#start_node=way_range[res[0]][1]
-#start_nodeid = node_id_list[start_way][start_node]
-#path=find_path(graph, start_nodeid, end_nodeid, path=[])
+start_way=way_range[res[0]][0]
+start_node=way_range[res[0]][1]
+start_nodeid = node_id_list[start_way][start_node]
+end_way=way_range[res[1]][0]
+end_node=way_range[res[1]][1]
+end_nodeid = node_id_list[end_way][end_node]
+path=find_path(graph, start_nodeid, end_nodeid, path=[])
+
 cur_max_id=0
 last_node_id=-1
-for i in range(len(res)):
-    posi=merge_mp_pts[res[i]]
-    offset_posi=[posi[0]+ori_gps[0], posi[1]+ori_gps[1]]
-    lnglat = unproject(cur_zone[0], cur_zone[1], offset_posi[0], offset_posi[1])
-    new_node_info={}
-    new_node_info["id"]=cur_max_id
-    new_node_info["posi"]=lnglat
-    if last_node_id!=-1:
-        new_node_info["nodes"]=[last_node_id]
-    node_db_list.insert_one(new_node_info)
+traj_pt_np=np.array(traj_posis)
+traj_tree = sn.KDTree(traj_pt_np, leaf_size=10)
+for i in range(len(path)-1):
+    node = find_node_in_db(path[i])
+    if len(node)==0:
+        lnglat = all_nodes[path[i]]
+        new_node_info={}
+        new_node_info["id"]=cur_max_id
+        new_node_info["posi"]=lnglat
+        new_node_info["nodes"]=[path[i+1]]
+        new_node_info["nodes"]
+        add_new_node(new_node_info)
+    else:
+        node["nodes"].append(path[i+1])
+
+        
     last_node_id=new_node_info["id"]
     cur_max_id=cur_max_id+1
+    node_db_list.insert_one(new_node_info)
+#    posi=merge_map_pts[res[i]]
+#    offset_posi=[posi[0]+ori_gps[0], posi[1]+ori_gps[1]]
+#    lnglat = unproject(cur_zone[0], cur_zone[1], offset_posi[0], offset_posi[1])
+
+    
 #plt.figure(figsize=(20,20))
 #show_maps(temp_posi_list, "chamo", True,[0,0,0],"solid")

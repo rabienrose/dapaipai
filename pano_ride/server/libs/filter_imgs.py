@@ -120,11 +120,11 @@ def filter_imgs(workspace, frame_per_meter, err, progress):
             out_img_count=out_img_count+1
             out_file_name = "chamo_"+'{:06d}'.format(out_img_count)+"."+img_type
             shutil.copyfile(src_imgs+"/"+file_name, out_imgs+"/"+out_file_name)
-            if out_img_count%10==0:
-                gps=meta_data[i]['gps']
-                acc=meta_data[i]['acc']
-                info=[gps[0],gps[1],gps[2], acc[1], out_img_count]
-                img_meta_list.append(info)
+            #if out_img_count%1==0:
+            gps=meta_data[i]['gps']
+            acc=meta_data[i]['acc']
+            info=[gps[0],gps[1],gps[2], acc[1], out_img_count]
+            img_meta_list.append(info)
     fileObject = open(out_meta, 'w')
     json_data = json.dumps(img_meta_list)
     fileObject.write(json_data)

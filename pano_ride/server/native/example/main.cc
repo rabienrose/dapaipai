@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
     STITCH_TYPE stitch_type = STITCH_TYPE::TEMPLATE;
     HDR_TYPE hdr_type = HDR_TYPE::ImageHdr_NONE;
 
-    int output_width = 1920;
-    int output_height = 960;
+    int output_width = 2048;
+    int output_height = 1024;
     int output_bitrate = 0;
 
     bool bEnableFlowState = false;
