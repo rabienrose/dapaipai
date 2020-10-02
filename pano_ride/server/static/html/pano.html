@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="1894.1">
+  <link rel="stylesheet" href="pano.css">
+  <link rel="stylesheet" href="demo_three.css">
+  <script src="../third/aliyun-oss-sdk-4.4.4.min.js"></script>
+  <script src="../third/jquery-1.12.4.min.js"></script>
+  <script src="../third/three.min.js"></script>
+  <script src="../js/pano.js" type="module"></script>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="scene"></div>
+    <div id="panel">
+        <button onclick="document.getElementById('load_folder').click()" class="large_button">
+            Load Folder
+        </button>
+        <input id="load_folder" type="file" webkitdirectory multiple style="display:none">
+    </div>
+    <div id="v_input">
+        <strong>Title</strong>
+        <input type="text" id="voice_title" class="large_input"></input>
+        <input id="load_mp3" type="file">
+        <button id="send_v" class="large_button">Send</button>
+        <button onclick="window.download_voice_list()" class="large_button">Save</button>
+        </br>
+        <div id="voice_list"></div>
+    </div>
+</body>
+</html>
+
+

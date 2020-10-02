@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="1894.1">
+  <link rel="stylesheet" href="map.css">
+  <script src="../third/aliyun-oss-sdk-4.4.4.min.js"></script>
+  <script src="../third/jquery-1.12.4.min.js"></script>
+  <script src="../third/three.min.js"></script>
+  <script src="../third/leaflet.js"></script>
+  <script src="../third/Leaflet.PolylineMeasure.js"></script>
+  <script type="text/javascript" src="../third/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
+  <link href="../third/leaflet.css" rel="stylesheet" />
+  <link href="../third/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css" rel="stylesheet" />
+  <link href="../third/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css" rel="stylesheet" />
+  <link href="../third/Leaflet.PolylineMeasure.css" type="text/css" rel="stylesheet"/>
+  <script src="../js/map.js"></script>
+  <script type="text/javascript">
+  </script>
+</head>
+<body>
+    <div id="panel_root" class="chamo_border">
+        <div id="panel_1" class="chamo_border">
+            <div id="panel_1_1" class="chamo_border">
+            </div>
+            <div id="panel_1_2" class="chamo_border">
+            </div>
+        </div>
+        <div id="panel_2" class="chamo_border">
+            <div>
+            <button onclick='set_start()' class="step_button">Set Start</button>
+            <button onclick='set_dest()' class="step_button">Set Dest</button>
+            <button onclick='cal_path()' class="step_button">Cal Path</button>
+            <button onclick='play()' class="step_button">Play</button>
+            <button onclick='pause()' id="pause_btn" class="step_button">Pause</button>
+            <button onclick='stop_cache()' class="step_button">Stop Cache</button>
+            <input type="text" id="output_name" class="step_button">
+            <button onclick='output()' class="step_button">Output</button>
+            </div>
+            <div id="traj_info"></div>
+        </div>
+    </div>
+</body>
+</html>
+
+

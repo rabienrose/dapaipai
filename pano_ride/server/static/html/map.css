@@ -1,0 +1,43 @@
+#map{
+    flex: 1;
+    height: 100%;
+}
+.chamo_border{
+    border: 1px solid #73AD21;
+}
+#panel_root{
+    width: 1400px;
+    height: 1000px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+}
+#panel_1{
+    width: 100%;
+    height: 600px;
+    flex-grow: 0;
+    display: flex;
+}
+#panel_2{
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+}
+#panel_1_1{
+    width: 802px;
+    height: 100%;
+    flex-grow: 0;
+}
+#panel_1_2{
+    height: 100%;
+    flex-grow: 1;
+}
+
+#video_pano{
+    width: 100%;
+    height: 80px;
+}
+.step_button{
+    width: 100px;
+    height: 30px;
+}
