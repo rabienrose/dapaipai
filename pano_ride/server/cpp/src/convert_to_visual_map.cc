@@ -247,7 +247,7 @@ void read_img_time(std::string img_time_addr, std::vector<double>& img_timess){
 void read_frame_pose(std::string img_pose_addr, std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Vector4d>>& poses, std::vector<int>& frame_ids){
     std::string line;
     std::ifstream infile_camera(img_pose_addr.c_str());
-    int step=20;
+    int step=10;
     int tmp_count=0;
     while (true){
         std::getline(infile_camera, line);
@@ -342,6 +342,6 @@ void process_data(std::string ws_addr){
 
 
 int main(int argc, char* argv[]) {
-    process_data("/workspace/imu_scale_es");
+    process_data("/workspace/ligong_ws");
     return 0;
 }

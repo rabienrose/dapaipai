@@ -1,0 +1,58 @@
+#map{
+    flex: 1;
+    height: 100%;
+}
+.chamo_border{
+    border: 1px solid #73AD21;
+}
+#panel_root{
+    width: 1200px;
+    height: 1000px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+}
+.step_button{
+    width: 60px;
+    height: 20px;
+}
+.large_button{
+    width: 150px;
+    height: 30px;
+}
+.large_input{
+    width: 400px;
+    height: 20px;
+}
+.small_input{
+    width: 100px;
+    height: 20px;
+}
+#scene{
+    width: 100%;
+    height: 100%;
+}
+#map{
+    flex: 1;
+    height: 100%;
+}
+#mapid{
+    width: 800px;
+    height: 600px;
+}
+#camera_gui{
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.move_btn{
+    width: 60px;
+    height: 20px;
+}
+.label_inline{
+    display:inline;
+}
+
+
+

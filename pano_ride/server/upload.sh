@@ -12,7 +12,7 @@ scp insv_process.py root@39.105.230.163:~/pano_map
 #export LD_LIBRARY_PATH=/workspace/DataExtractor/InsMetadataSDK/lib
 #export LD_LIBRARY_PATH=/workspace/native/lib
 #gcc native/example/main.cc -o native/stitcherSDKDemo -I/workspace/native/include -L/workspace/native/lib -lMediaSDK -lstdc++
-gcc DataExtractor/InsMetadataSDK/example/main.cc -o /workspace/DataExtractor/extractor -I/workspace/DataExtractor/InsMetadataSDK/include -L/workspace/DataExtractor/InsMetadataSDK/lib -lInsMetaDataSDK -lstdc++
+gcc DataExtractor/InsMetadataSDK/example/main.cc -o /workspace/DataExtractor/extractor -I/workspace/DataExtractor/InsMetadataSDK/include -L/workspace/DataExtractor/InsMetadataSDK/lib -lInsMetaDataSDK -lstdc++ -lpthread
 
 #./native/stitcherSDKDemo -inputs yongdingmen.insv.insv -output yongdingmen.MP4 -stitch_type optflow -hdr_type multiimagehdr_mbb -enable_flowstate
 

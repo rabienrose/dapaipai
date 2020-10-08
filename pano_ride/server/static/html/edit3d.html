@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chamo Cloud</title>
+    <meta charset="utf-8" />
+    <script type="text/javascript" src="../third/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="../js/edit3d.js"></script>
+    <script type="text/javascript" src="../third/dat.gui/build/dat.gui.js"></script>
+    <script type="text/javascript" src="../third/three.js/build/three.js"></script>
+    <script type="text/javascript" src="../third/three.js/examples/js/libs/stats.min.js"></script>
+    <script type="text/javascript" src="../third/three.js/examples/js/controls/OrbitControls.js"></script>
+    <script type="text/javascript" src="../third/three.js/examples/jsm/libs/stats.module.js"></script>
+    <script type="text/javascript" src="../third/three.js/examples/js/controls/TrackballControls.js"></script>
+    <link rel="stylesheet" href="edit3d.css">
+    <link rel="stylesheet" href="demo_three.css">
+</head>
+<body>
+    <div id="container"></div>
+    <div id="pano"></div>
+    <div id="panel">
+        
+        <input type="radio" id="rad_scale" name="task" checked="checked">Set Scale
+            <input type="text" id="scale_input" value = "1.0" class="small_input"></input>
+            </br>
+        <input type="radio" id="rad_gravity" name="task">Set Gravity
+            <input type="text" id="gravity_x_input" value = "0.0" class="small_input"></input>
+            <input type="text" id="gravity_y_input" value = "0.0" class="small_input"></input>
+            </br>
+        <input type="radio" id="rad_resample" name="task">Resample
+            <input type="text" id="rad_resample_step_input" value = "0.1" class="small_input"></input>
+            </br>
+        <input type="radio" id="rad_del_point" name="task">Delete Point</br>
+        <input type="radio" id="rad_del_node" name="task">Delete Node</br>
+        <input type="radio" id="rad_del_conn" name="task">Delete Connection</br>
+        <input type="radio" id="rad_add_conn" name="task">Add Connection</br>
+        <input type="radio" id="rad_tran_traj" name="task">Transform Trajectory
+            <input type="text" id="tran_angle_input" value = "0.0" class="small_input"></input>
+            <input type="text" id="tran_scale_input" value = "1.0" class="small_input"></input>
+            </br>
+        <input type="radio" id="rad_point_size" name="task">Point Size
+            <input type="text" id="point_size_input" value = "1.0" class="small_input"></input>
+            </br>
+        <input type="radio" id="rad_pick_thres" name="task">Pick Threshold
+            <input type="text" id="pick_thres_input" value = "0.03" class="small_input"></input>
+            </br>
+        <button onclick="document.getElementById('load_folder').click()" class="large_button">
+            Load Folder
+        </button>
+        <input id="load_folder" type="file" webkitdirectory multiple style="display:none">
+        <button onclick="save_btn()" class="large_button">Save</button>
+        <button onclick="ok_btn()" class="large_button">Apply</button></br>
+    </div>
+</body>
+</html>
+

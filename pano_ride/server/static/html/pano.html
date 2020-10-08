@@ -11,12 +11,13 @@
   <script src="../third/aliyun-oss-sdk-4.4.4.min.js"></script>
   <script src="../third/jquery-1.12.4.min.js"></script>
   <script src="../third/three.min.js"></script>
-  <script src="../js/pano.js" type="module"></script>
+  <script src="../js/pano.js"></script>
 </head>
 <body>
     <div id="container"></div>
     <div id="scene"></div>
     <div id="panel">
+        <input type="checkbox" id="b_run" onchange="check_run(this.value)" style="margin-left:10px" />Running</br>
         <button onclick="document.getElementById('load_folder').click()" class="large_button">
             Load Folder
         </button>

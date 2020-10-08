@@ -27,10 +27,9 @@ canvas {
 #panel {
 	position: absolute;
     bottom: 0;
-	width: 100%;
+	left: 0;
 	padding: 10px;
 	box-sizing: border-box;
-	text-align: center;
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select: none;
@@ -57,6 +56,15 @@ canvas {
     right: 0;
     width: 300px;
     height: 300px;
+    z-index: 1;
+}
+
+#pano{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 460px;
+    height: 250px;
     z-index: 1;
 }
 
