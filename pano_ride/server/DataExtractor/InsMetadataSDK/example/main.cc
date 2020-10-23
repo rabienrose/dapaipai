@@ -2,9 +2,10 @@
 #include <metaData.h>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 std::ostream& operator<<(std::ostream &os, const GpsDataItem_t &item) {
-	os << item.timestampMs
+	os << item.timestampMs<< std::setprecision(20)
 		<< "," << item.latitude
 		<< "," << item.longitude
 		<< "," << item.altitude << std::endl;
@@ -29,6 +30,8 @@ std::ostream& operator<<(std::ostream &os, const ExposureDataItem_t &item) {
 int main(int argc, char* argv[]) {
 
 	std::string strFilePath = argv[1];
+    std::string strOutPath = argv[2];
+    std::string strOutPre = argv[3];
 
 	auto metaDataParser = std::make_shared<ins_metadata::MetaDataParser>();
 
@@ -50,31 +53,28 @@ int main(int argc, char* argv[]) {
 		std::cout << "Offset: " << metaDataParser->GetOffset() << std::endl;
 		std::cout << "CameraType: " << metaDataParser->GetCameraType() << std::endl;
 		std::cout << "FirewareVersion: " << metaDataParser->GetFireWareVersion() << std::endl;
-
 		if (!GpsData.empty()) {
-			std::ofstream out("GpsData.txt");
+			std::ofstream out(strOutPath+"/"+strOutPre+"_GpsData.txt");
 
 			for (auto& GpsDataItem: GpsData) {
-				out << GpsDataItem;
+				out <<GpsDataItem;
 			}
 		}
-
 		if (!GyroData.empty()) {
-			std::ofstream out("GyroData.txt");
+			std::ofstream out(strOutPath+"/"+strOutPre+"_GyroData.txt");
 
 			for (auto& GyroDataItem : GyroData) {
 				out << GyroDataItem;
 			}
 		}
-
 		if (!ExposureData.empty()) {
-			std::ofstream out("ExposureData.txt");
+			std::ofstream out(strOutPath+"/"+strOutPre+"_ExposureData.txt");
 
 			for (auto& ExposureDataItem : ExposureData) {
 				out << ExposureDataItem;
 			}
 		}
-        std::ofstream out("FirstImage.txt");
+        std::ofstream out(strOutPath+"/"+strOutPre+"_FirstImage.txt");
         out << firstTimeStamp;
 	}
 

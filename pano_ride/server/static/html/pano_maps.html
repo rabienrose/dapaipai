@@ -1,0 +1,25 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>Pano Map List</title>
+  <link rel="stylesheet" href="pano.css">
+  <script src="../third/aliyun-oss-sdk-4.4.4.min.js"></script>
+  <script src="../third/jquery-1.12.4.min.js"></script>
+  <script src="../third/three.min.js"></script>
+  <script src="../js/pano_maps.js"></script>
+</head>
+<body>
+    <strong>Map Name: </strong>
+    <input type="text" id="map_name_input" class="large_input"></input>
+    <strong>Author: </strong>
+    <input type="text" id="author_input" class="large_input"></input>
+    <button id="create_map" onclick="create_map()" class="large_button">Create New Map</button>
+    <div id="uploading_root"></div>
+    <div id="map_root"></div>
+    <input id="load_folder" onchange="process_folder(this)" type="file" multiple style="display:none">
+</body>
+</html>
+
+

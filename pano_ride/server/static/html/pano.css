@@ -3,6 +3,15 @@
     height: 30px;
 }
 .large_input{
-    width: 400px;
+    width: 300px;
     height: 20px;
 }
+.small_input{
+    width: 50px;
+    height: 20px;
+}
+.fit_div{
+    max-width:100%;
+    max-height:100%;
+}
+

@@ -21,7 +21,6 @@ var last_scene_x=0
 var isUserInteractingScene=false
 var pano_material
 var sence_cam_dis=-500
-const loader = new THREE.TextureLoader();
 var cur_node=null
 var next_node=null
 var traj_threejs=[]
@@ -32,37 +31,36 @@ var back_key=false
 var me=null
 var voice_list=[]
 var mp3_list={}
+var lm_mp3_files={}
+var lm_jpg_files={}
+var landmarks={}
 var cur_voice={"name":"","dom":null}
 var moving_speed=1
 var node_threejs=[]
 var raycaster
+var lm_sprit_list=[]
+var bgm_file=null
+var bgm_dom=null
+var res_tex_list={}
+var lm_icon_filename="lmicon.jpg"
+var lm_icon_filename_a="lmicon_a.jpg"
+var soundBGM
 
-function show_img(image_id){
-    if (image_id in texture_cache){
-        pano_material.map=texture_cache[image_id]
-        pano_material.map.needsUpdate=true
-    }else{
-        if (caching==true){
-            return false
-        }
-        name_vec=image_id.split("-")
-        real_img_name=name_vec[0]+"-"+name_vec[1]+"-"+name_vec[2]+"/imgs/"+name_vec[3]+".jpg"
-        src=img_root+real_img_name
-        caching=true
-        loader.load(src, callback(image_id, true));
-    }
-    return true
-}
-
-function show_img_callback() {
+function show_img_callback(node) {
     return (texture) => {
 //        texture.generateMipmaps = false;
 //        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
 //        texture.minFilter = THREE.LinearFilter;
         pano_material.map=texture
         pano_material.map.needsUpdate=true
-        
+        cur_node=node
     }
+}
+
+function load_img_res_callback(res_name){
+    return (texture) => {
+            res_tex_list[res_name]=texture
+        }
 }
 
 function show_pc(mp_file){
@@ -206,10 +204,10 @@ function init_pano() {
     var divHeight = window.innerHeight;
     var divWidth = window.innerWidth;
     var rate=divWidth/divHeight
-    camera = new THREE.PerspectiveCamera( 75, rate, 1, 1100 );
+    camera = new THREE.PerspectiveCamera( 60, rate, 1, 3000 );
     camera.target = new THREE.Vector3( 0, 0, 0 );
     scene = new THREE.Scene();
-    var geometry = new THREE.SphereBufferGeometry( 1000, 60, 40 );
+    var geometry = new THREE.SphereBufferGeometry( 1100, 60, 40 );
     // invert the geometry on the x-axis so that all of the faces point inward
     geometry.scale( -1, 1, 1 );
     var texture =  new THREE.TextureLoader().load('#');
@@ -224,6 +222,7 @@ function init_pano() {
     container_query.on( 'mousemove', onDocumentMouseMove);
     container_query.on( 'mouseup', onDocumentMouseUp);
     container_query.on( 'mouseout', onDocumentMouseOut);
+    renderer.domElement.addEventListener("click", onclickpano, true);
 }
 
 function onSceneMouseDown( event ) {
@@ -320,7 +319,7 @@ function update() {
         return
     }
     var phi = THREE.Math.degToRad( 90 - lat );
-    var pano_theta = THREE.Math.degToRad( lon+cur_node["dir"]-20);
+    var pano_theta = THREE.Math.degToRad( lon-cur_node["dir"]);
     camera.position.x = distance * Math.sin( phi ) * Math.cos( pano_theta );
     camera.position.y = distance * Math.cos( phi );
     camera.position.z = distance * Math.sin( phi ) * Math.sin( pano_theta );
@@ -362,13 +361,13 @@ function get_command(){
     return 9999
 }
 
-function show_image(img_file){
+function show_image(node){
     var reader = new FileReader();
     reader.onload = function (e) {
-        loader.load(e.target.result, show_img_callback());
+        var loader = new THREE.TextureLoader();
+        loader.load(e.target.result, show_img_callback(node));
     };
-    reader.readAsDataURL(img_file);
-    var path=img_file["webkitRelativePath"]
+    reader.readAsDataURL(node["f"]);
 }
 
 function update_scene_map(){
@@ -402,10 +401,10 @@ async function play_thread(file_list){
             await sleep(100)
         }
         if (cur_node["id"]!=next_node["id"]){
-            cur_node=next_node
-            show_image(next_node["f"])
+            show_image(next_node)
             update_scene_map()
             update_voice_list()
+            update_landmarks()
         }
         var angle=get_command()
         if (angle>1000){
@@ -442,7 +441,6 @@ async function play_thread(file_list){
             }else{
                 await sleep(100) 
             }
-            
         }
     }
 }
@@ -453,12 +451,161 @@ function get_angle_from_mat(ori, tar){
     return angle
 }
 
+function show_all_landmarks(){
+    all_lms=[]
+    for(var i=0;i<landmarks.length; i++){
+        all_lms.push(landmarks[i]["posi"])
+    }
+    var color="#ffff00"
+    add_threejs_pts(all_lms, color, 10)
+}
+
+function get_sub(v1,v2){
+    return [v1[0]-v2[0], v1[1]-v2[1], v1[2]-v2[2],]
+}
+
+function cal_pano_posi(tar_posi, me_posi, me_dir){
+    rel_posi = get_sub(tar_posi,me_posi)
+    norm = cal_dist(rel_posi,[0,0,0])
+    rel_posi=[rel_posi[0]/norm*1000,rel_posi[1]/norm*1000,rel_posi[2]/norm*1000]
+    rel_cam_posi=[-rel_posi[2],-rel_posi[1],-rel_posi[0]]
+    return rel_cam_posi
+}
+
+function onclickpano(event){
+    event.preventDefault();
+    var mouse = new THREE.Vector2()
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera)
+    if (lm_sprit_list.length>0){
+        var intersects = raycaster.intersectObjects(lm_sprit_list, true)
+        if (intersects.length > 0) {
+            var jpg_name=intersects[0].object.jpg
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                img_str='<img src='+e.target.result+' class="fit_div" align="right">'
+                var lm_img_dom = document.getElementById( 'lm_img' );
+                lm_img_dom.innerHTML=img_str
+                check_lm_img(false)
+            };
+            reader.readAsDataURL(lm_jpg_files[jpg_name]);
+            var mp3_name=intersects[0].object.mp3
+            if (mp3_name ==cur_voice["name"]){
+                if (cur_voice["dom"].paused){
+                    cur_voice["dom"].play()
+                }else{
+                    cur_voice["dom"].pause()
+                }
+                return
+            }
+            if (cur_voice["name"]=="" || mp3_name !=cur_voice["name"]){
+                if (cur_voice["name"]!=""){
+                    cur_voice["dom"].pause()
+                }
+                var mp3_file=lm_mp3_files[mp3_name]
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var soundFile = document.createElement("audio")
+                    soundFile.preload = "auto"
+                    var src = document.createElement("source")
+                    src.src = e.target.result
+                    soundFile.appendChild(src)
+                    soundFile.load()
+                    soundFile.play()
+                    cur_voice={"name":mp3_name, "dom":soundFile}
+                };
+                reader.readAsDataURL(mp3_file);
+            }
+        }
+    }
+}
+
+function update_landmarks(){
+    var display_list=[]
+    for(var i=0;i<landmarks.length; i++){
+        var range=landmarks[i]["range"]
+        if (range[0]<cur_node["id"] && range[1]>cur_node["id"]){
+            display_list.push(1)
+        }else{
+            display_list.push(0)
+        }
+    }
+    
+    for(var i=0; i<display_list.length; i++){
+        var b_show_ind=-1
+        for (var j=0; j<lm_sprit_list.length; j++){
+            if(lm_sprit_list[j]["iddd"].valueOf()==landmarks[i]["id"].valueOf()){
+                b_show_ind=j
+                break
+            }
+        }
+        if (display_list[i]==1){
+            posi_3d=landmarks[i]["posi"]
+            posi_pano = cal_pano_posi(posi_3d, cur_node["posi"], cur_node["dir"])
+            if (b_show_ind==-1){
+                if (!(lm_icon_filename in res_tex_list)){
+                    console.log("marker icon not loaded")
+                    continue
+                }
+                var spriteMap = res_tex_list[lm_icon_filename];
+                var spriteMapAlpha = res_tex_list[lm_icon_filename_a];
+                var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, alphaMap: spriteMapAlpha } );
+                spriteMaterial.sizeAttenuation=false
+                var sprite = new THREE.Sprite( spriteMaterial );
+                sprite.position.set(posi_pano[0],posi_pano[1],posi_pano[2]);
+                sprite.center.set( 0.5, 0.5 );
+                sprite.scale.set( .30, .30, .30 );
+                sprite["mp3"]=landmarks[i]["mp3"]
+                sprite["jpg"]=landmarks[i]["jpg"]
+                sprite["iddd"]=landmarks[i]["id"]
+                scene.add(sprite)
+                lm_sprit_list.push(sprite)
+            }else{
+                lm_sprit_list[b_show_ind].position.set(posi_pano[0],posi_pano[1],posi_pano[2]);
+            }
+        }else{
+            if (b_show_ind!=-1){
+                scene.remove(lm_sprit_list[b_show_ind])
+                var new_array=[]
+                for (var j=0; j<lm_sprit_list.length; j++){
+                    if(j!=b_show_ind){
+                        new_array.push(lm_sprit_list[j])
+                    }
+                }
+                lm_sprit_list=new_array
+            }
+        }
+    }
+}
+
+function update_bgms(){
+    if (bgm_file==null){
+        return
+    }
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        soundBGM = document.createElement("audio")
+        soundBGM.preload = "auto"
+        var src = document.createElement("source")
+        src.src = e.target.result
+        soundBGM.appendChild(src)
+        soundBGM.load()
+        soundBGM.loop=true
+        soundBGM.play()
+        bgm_dom=soundBGM
+    };
+    reader.readAsDataURL(bgm_file);
+}
+
 function process_folder(){
     var file_list={}
+    var bgm_list={}
     var graph_file=null
     var mp_file=null
     var frame_file=null
     var voice_list_file=null
+    var landmark_list_file=null
     for (var file_id=0; file_id<this.files.length; file_id++){
         var file=this.files[file_id]
         var path=file["webkitRelativePath"]
@@ -467,8 +614,23 @@ function process_folder(){
             continue
         }
         var file_name=path_vec[path_vec.length-1]
+        var folder_name=path_vec[path_vec.length-2]
         if (file_name.includes(".jpg")){
-            file_list[parseInt(file_name.split(".jpg")[0])-1]=file
+            if(folder_name=="res"){
+                var reader = new FileReader()
+                reader.onload =(function(){
+                    var fileName = file_name
+                    return function(e){
+                        var loader = new THREE.TextureLoader();
+                        loader.load(e.target.result, load_img_res_callback(fileName))
+                    };
+                })();
+                reader.readAsDataURL(file);
+            }else if(folder_name=="landmark"){
+                lm_jpg_files[file_name]=file
+            }else if(folder_name=="imgs"){
+                file_list[parseInt(file_name.split(".jpg")[0])]=file
+            }
         }
         if (file_name.includes("graph.json")){
             graph_file=file
@@ -482,8 +644,17 @@ function process_folder(){
         if (file_name.includes("voice.json")){
             voice_list_file=file
         }
+        if (file_name.includes("landmark.json")){
+            landmark_list_file=file
+        }
         if (file_name.includes(".mp3")){
-            mp3_list[file_name]=file
+            if (folder_name=="bgm"){
+                bgm_file=file
+            }else if (folder_name=="voice"){
+                mp3_list[file_name]=file
+            }else if (folder_name=="landmark"){
+                lm_mp3_files[file_name]=file
+            }
         }
     }
     var frame_list=[]
@@ -522,11 +693,14 @@ function process_folder(){
                     }
                     cur_node=graph["nodes"][0]
                     next_node=graph["nodes"][0]
-                    show_image(cur_node["f"])
+                    show_image(cur_node)
                     show_graph_3d()
                     play_thread(file_list)
                     update_scene_map()
                     update_voice_list()
+                    update_landmarks()
+                    update_bgms()
+                    show_all_landmarks()
                 };
                 fr.readAsText(graph_file);
             }
@@ -544,6 +718,14 @@ function process_folder(){
         };
         fr.readAsText(voice_list_file);
     }
+    if (landmark_list_file!=null){
+        var fr = new FileReader();
+        fr.onload = function(e) {
+            var lines = e.target.result;
+            landmarks = JSON.parse(lines)
+        };
+        fr.readAsText(landmark_list_file);
+    }
 }
 
 function cal_dist(v1,v2){
@@ -553,9 +735,10 @@ function cal_dist(v1,v2){
 function update_voice_list(){
     var display_list=[]
     for(var i=0;i<voice_list.length; i++){
+        var range=voice_list[i][3]
         var tmp_posi = graph["nodes"][voice_list[i][0]]["posi"]
         var dist = cal_dist(cur_node["posi"],tmp_posi)
-        if (dist<1){
+        if (dist<range){
             display_list.push(i)
         }
     }
@@ -592,7 +775,6 @@ function play_voice(ind){
         if (cur_voice["name"]!=""){
             cur_voice["dom"].pause()
         }
-        console.log(voice_name)
         var mp3_file=mp3_list[voice_name]
         var reader = new FileReader();
         reader.onload = function (e) {
@@ -622,6 +804,7 @@ function download_voice_list(){
 function send_voice(){
     var mp3_file_dom = document.getElementById("load_mp3");
     var title=document.getElementById("voice_title").value
+    var range=parseInt(document.getElementById("v_range").value)
     if (title==""){
         return
     }
@@ -632,25 +815,36 @@ function send_voice(){
         if (mp3_file_dom.files.length != 0) {
             var mp3_file=mp3_file_dom.files[0]
             if (mp3_file["name"].includes(".mp3")){
-                var same_id=-1
-                for (var i=0; i<voice_list.length; i++){
-                    if (mp3_file["name"]==voice_list[i][1]){
-                        same_id=i
-                        break
-                    }
-                }
-                if (same_id==-1){
-                    var new_voice=[cur_node["id"],mp3_file["name"],title]
-                    voice_list.push(new_voice)
-                    mp3_list[mp3_file["name"]]=mp3_file
-                }else{
-                    voice_list[same_id][0]=cur_node["id"]
-                    voice_list[same_id][2]=title
-                }
+                var new_voice=[cur_node["id"],mp3_file["name"],title,range]
+                voice_list.push(new_voice)
+                mp3_list[mp3_file["name"]]=mp3_file
             }
         }
     }
     update_voice_list()
+}
+
+function check_lm_img(b_true){
+    var val=document.getElementById("b_lm_img").value
+    if (b_true==null){
+        b_true=val
+    }
+    var div_tmp = document.getElementById("lm_img")
+    console.log(b_true)
+    if (b_true){
+        div_tmp.style.display = "none"
+    }else{
+        div_tmp.style.display = "block"
+    }
+}
+
+function check_bgm(b_true){
+    console.log(b_true)
+    if (b_true){
+        soundBGM.play()
+    }else{
+        soundBGM.pause()
+    }
 }
 
 $(document).ready(function(){

@@ -17,7 +17,9 @@
     <div id="container"></div>
     <div id="scene"></div>
     <div id="panel">
-        <input type="checkbox" id="b_run" onchange="check_run(this.value)" style="margin-left:10px" />Running</br>
+        <input type="checkbox" id="b_run" onchange="check_run(checked)" style="margin-left:10px" />Running</br>
+        <input type="checkbox" id="b_lm_img" onchange="check_lm_img(checked)" style="margin-left:10px" />Hide Image</br>
+        <input type="checkbox" id="b_bgm" onchange="check_bgm(checked)" style="margin-left:10px" checked/>BGM</br>
         <button onclick="document.getElementById('load_folder').click()" class="large_button">
             Load Folder
         </button>
@@ -26,11 +28,15 @@
     <div id="v_input">
         <strong>Title</strong>
         <input type="text" id="voice_title" class="large_input"></input>
+        <strong>Range</strong>
+        <input type="text" id="v_range" class="small_input"></input>
         <input id="load_mp3" type="file">
         <button id="send_v" class="large_button">Send</button>
         <button onclick="window.download_voice_list()" class="large_button">Save</button>
         </br>
         <div id="voice_list"></div>
+    </div>
+    <div id="lm_img">
     </div>
 </body>
 </html>

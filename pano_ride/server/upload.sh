@@ -3,6 +3,8 @@ scp -r libs root@39.105.230.163:~/pano_map
 scp *.py root@39.105.230.163:~/pano_map
 scp start.sh root@39.105.230.163:~/pano_map
 scp -r native root@39.105.230.163:~/pano_map
+scp -r DataExtractor root@39.105.230.163:~/pano_map
+scp -r vslam root@39.105.230.163:~/pano_map
 
 scp insv_process.py root@39.105.230.163:~/pano_map
 
@@ -23,16 +25,4 @@ kalibr-cde/kalibr_bagextractor --image-topics /cam0/image_raw /cam1/image_raw --
 kalibr-cde/kalibr_calibrate_cameras --target checkerboard_7x6_50x50cm.yaml --bag cali.bag --models pinhole-equi --topics /cam0/image_raw
 
 kalibr_calibrate_cameras --target /media/psf/Home/Documents/dapaipai/pano_ride/server/april_6x6_50x50cm.yaml --bag cali.bag --models pinhole-equi --topics /cam0/image_raw
-
-2
-1499.910, 1516.101, 1508.135
-0.000,    0.000,    0.000
-1494.510, 4554.735, 1552.938
-1.497,    -0.256,   179.284
-6080, 3040, 2323
-2
-1481.2, 1518.81, 1516.2
--0.178493, 0.473543, -179.656
-1481.33, 4555.99, 1514.28
-0.693851, 0.558506, 0.783005
-6080, 3040, 3105
+ffmpeg -i init_tmp/Mofanbookstore/imgs/%06d.jpg -vcodec libx264 -crf 5 -pix_fmt yuv420p test.mp4

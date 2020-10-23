@@ -1,3 +1,6 @@
+import { DragControls } from '../third/three.js/examples/jsm/controls/DragControls.js'
+import { TransformControls } from '../third/three.js/examples/jsm/controls/TransformControls.js'
+
 var mymap
 var orbitControls
 var renderer
@@ -11,20 +14,21 @@ var graphs=null
 var mps=null
 var traj_threejs=[]
 var count_rend_point=0
+var view_mode=-1
 var node_threejs=[]
 var edge_threejs=[]
 var mp_threejs=[]
 var tmp_line_threejs=[]
 var first_choose_pt=[]
-var view_mode=-1
-var scale_candi=-1
 var choose_pt_threejs=[]
 var choose_edge_threejs=[]
-var tran_ori_frame=-1
 var del_nodes=[]
 var del_edges=[]
-var add_edge_node1=-1
-var add_edge_node2=-1
+var scale_candi=-1
+var tran_ori_frame=-1
+var edge_node1=-1
+var edge_node2=-1
+var cur_frame_id=null
 var point_size=1
 var pick_thres=0.03
 var camera_pano, scene_pano, renderer_pano
@@ -32,7 +36,8 @@ var pano_material
 var img_file_list={}
 var loader
 var dir_marker_threejs=null
-var cur_frame_id=null
+var stats
+var hiding
 var isUserInteracting = false,
     lon = 0, lat = 0,
     phi = 0, theta = 0,
@@ -41,6 +46,11 @@ var isUserInteracting = false,
     onPointerDownPointerY = 0,
     onPointerDownLon = 0,
     onPointerDownLat = 0;
+var lm_objects=[]
+var landmarks=[]
+var transformControl
+var dragcontrols
+var pano_marker=null
 
 function add_threejs_pts(pts, color, size){
     var pointMaterial =  new THREE.PointsMaterial({
@@ -77,7 +87,7 @@ function add_threejs_lines(pts,color){
 }
 
 function add_threejs_segment(segs,color, addlist=true){
-    points=[]
+    var points=[]
     for (var i=0; i<segs.length; i++){
         count_rend_point=count_rend_point+2
         points.push( new THREE.Vector3(segs[i][0][0], segs[i][0][2], -segs[i][0][1]))
@@ -95,6 +105,30 @@ function add_threejs_segment(segs,color, addlist=true){
     return lineobj
 }
 
+function add_lm_marker(posi, id){
+    var marker_size=0.3
+    var geometry = new THREE.BoxBufferGeometry( marker_size, marker_size, marker_size );
+    var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { emissive: "#ff0000" } ) );
+    object.position.x = posi[0]
+    object.position.y = posi[2]
+    object.position.z = -posi[1]
+    scene.add(object)
+    object["lm_mark_id"]=id
+    lm_objects.push(object)
+}
+
+function delayHideTransform() {
+    cancelHideTransform()
+    hideTransform()
+}
+function hideTransform() {
+    hiding = setTimeout( function () {
+        transformControl.detach( transformControl.object )
+    }, 2500 )
+}
+function cancelHideTransform() {
+    if ( hiding ) clearTimeout( hiding )
+}
 
 async function init_3d() {
     scene = new THREE.Scene()
@@ -102,7 +136,6 @@ async function init_3d() {
     clock = new THREE.Clock()
     var container=document.getElementById("container")
     var sceneColor = new THREE.Color( 0x888888 );
-    scene.background = sceneColor.setStyle(color="rgb(255,255,255)");
     var divHeight = window.innerHeight;
     var divWidth = window.innerWidth;
     //camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 10000);
@@ -115,14 +148,41 @@ async function init_3d() {
     camera.aspect = divWidth/divHeight;
     camera.updateProjectionMatrix();
     renderer = new THREE.WebGLRenderer();
-    renderer.setClearColor(new THREE.Color(0x000000));
+    renderer.setClearColor(new THREE.Color(0xFFFFFFFF));
     container.appendChild(renderer.domElement);
     renderer.setSize( divWidth, divHeight );
     window.addEventListener( 'resize', onWindowResize, false );
     orbitControls = new THREE.OrbitControls( camera, renderer.domElement )
     orbitControls.maxPolarAngle=3.1415926*3/4
-    var divisions0 = 10;
-    var geometry0 = new THREE.Geometry();
+    transformControl = new TransformControls( camera, renderer.domElement );
+    transformControl.size=0.03
+    transformControl.addEventListener( 'dragging-changed', function ( event ) {
+        orbitControls.enabled = ! event.value;
+    });
+    scene.add(transformControl)
+    transformControl.addEventListener( 'change', function (event) {
+        cancelHideTransform()
+        if (event.target.object==null){
+            return
+        }
+        var tmp_posi=event.target.object.position
+        var ind=event.target.object.lm_mark_id
+        landmarks[ind]["posi"][0]=tmp_posi.x
+        landmarks[ind]["posi"][1]=-tmp_posi.z
+        landmarks[ind]["posi"][2]=tmp_posi.y
+        update_lm_pano()
+    });
+    transformControl.addEventListener( 'mouseDown', function () {
+        cancelHideTransform()
+    });
+    transformControl.addEventListener( 'mouseUp', function () {
+        delayHideTransform()
+    });
+    transformControl.addEventListener( 'objectChange', function () {
+    });
+    
+    var divisions0 = 10
+    var geometry0 = new THREE.Geometry()
     var size0 = 1000;
     geometry0.vertices.push(new THREE.Vector3(-Math.ceil(size0 / 2), 0, 0));
     geometry0.vertices.push(new THREE.Vector3(Math.ceil(size0 / 2), 0, 0));
@@ -238,7 +298,7 @@ function update_scene(){
     }
     var all_mps=[]
     for(var frame_id in mps){
-        sub_mps=mps[frame_id]
+        var sub_mps=mps[frame_id]
         for (var i=0; i<sub_mps.length; i++){
             all_mps.push(sub_mps[i])
         }
@@ -248,19 +308,19 @@ function update_scene(){
     var all_nodes=[]
     var all_edges=[]
     for (var i=0; i<graphs["node"].length; i++){
-        tmp_frameid = graphs["node"][i]["id"]
+        var tmp_frameid = graphs["node"][i]["id"]
         all_nodes.push(frames[tmp_frameid][1])
     }
     for (var i=0; i<graphs["conn"].length; i++){
-        tmp_conn = graphs["conn"][i]
-        v1_id=graphs["node"][tmp_conn["v1"]]["id"]
-        v2_id=graphs["node"][tmp_conn["v2"]]["id"]
-        edge=[]
+        var tmp_conn = graphs["conn"][i]
+        var v1_id=graphs["node"][tmp_conn["v1"]]["id"]
+        var v2_id=graphs["node"][tmp_conn["v2"]]["id"]
+        var edge=[]
         edge.push(frames[v1_id][1])
         edge.push(frames[v2_id][1])
         all_edges.push(edge)
     }
-    color="#02f07a"
+    var color="#02f07a"
     node_threejs.push(add_threejs_pts(all_nodes, color, 5))
     edge_threejs.push(add_threejs_segment(all_edges, color))
 }
@@ -274,22 +334,25 @@ function clear_tmp_line(){
     }
 }
 
-function show_image(img_file){
+function show_image(img_file, id_tmp){
     var reader = new FileReader();
     reader.onload = function (e) {
-        loader.load(e.target.result, show_img_callback());
+        loader.load(e.target.result, show_img_callback(id_tmp));
+        
     };
     reader.readAsDataURL(img_file);
 }
 
-function show_img_callback() {
+function show_img_callback(id_tmp) {
     return (texture) => {
 //        texture.generateMipmaps = false;
 //        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
 //        texture.minFilter = THREE.LinearFilter;
         pano_material.map=texture
         pano_material.map.needsUpdate=true
-        
+        cur_frame_id=id_tmp
+        update_dir_marker()
+        update_lm_pano()
     }
 }
 
@@ -314,6 +377,15 @@ function add_v(v1, v2){
     return [v1[0]+v2[0],v1[1]+v2[1],v1[2]+v2[2]]
 }
 
+function find_lm_by_id(id){
+    for(var i=0; i<landmarks.length; i++){
+        if(landmarks[i]["id"]==id){
+            return i
+        }
+    }
+    return -1
+}
+
 function ok_btn(){
     var b_scale= document.getElementById("rad_scale").checked
     var b_gravity= document.getElementById("rad_gravity").checked
@@ -324,11 +396,15 @@ function ok_btn(){
     var b_tran_traj= document.getElementById("rad_tran_traj").checked
     var b_point_size= document.getElementById("rad_point_size").checked
     var b_pick_thres= document.getElementById("rad_pick_thres").checked
+    var b_del_node_range= document.getElementById("rad_del_node_range").checked
+    var b_add_landmark= document.getElementById("rad_add_landmark").checked
+    var b_del_landmark= document.getElementById("rad_del_landmark").checked
+
     if (b_scale && scale_candi>0){
         var scale_meter = parseFloat(document.getElementById("scale_input").value)
         scale_candi=scale_meter/scale_candi
         for(var frame_id in mps){
-            sub_mps=mps[frame_id]
+            var sub_mps=mps[frame_id]
             for (var i=0; i<sub_mps.length; i++){
                 sub_mps[i] = multi_v(sub_mps[i], scale_candi)
             }
@@ -347,17 +423,17 @@ function ok_btn(){
         var cos_y = Math.cos(gravity_y_step)
         var sin_y = Math.sin(gravity_y_step)
         for(var frame_id in mps){
-            sub_mps=mps[frame_id]
+            var sub_mps=mps[frame_id]
             for (var i=0; i<sub_mps.length; i++){
                 if (gravity_x_step!=0){
-                    rot_x = cos_x*sub_mps[i][0]-sin_x*sub_mps[i][1]
-                    rot_y = sin_x*sub_mps[i][0]+cos_x*sub_mps[i][1]
+                    var rot_x = cos_x*sub_mps[i][0]-sin_x*sub_mps[i][1]
+                    var rot_y = sin_x*sub_mps[i][0]+cos_x*sub_mps[i][1]
                     sub_mps[i][0]=rot_x
                     sub_mps[i][1]=rot_y
                 }
                 if (gravity_y_step!=0){
-                    rot_x = cos_y*sub_mps[i][2]-sin_y*sub_mps[i][1]
-                    rot_y = sin_y*sub_mps[i][2]+cos_y*sub_mps[i][1]
+                    var rot_x = cos_y*sub_mps[i][2]-sin_y*sub_mps[i][1]
+                    var rot_y = sin_y*sub_mps[i][2]+cos_y*sub_mps[i][1]
                     sub_mps[i][2]=rot_x
                     sub_mps[i][1]=rot_y
                 }
@@ -365,14 +441,14 @@ function ok_btn(){
         }
         for(var i=0; i<frames.length; i++){
             if (gravity_x_step!=0){
-                rot_x = cos_x*frames[i][1][0]-sin_x*frames[i][1][1]
-                rot_y = sin_x*frames[i][1][0]+cos_x*frames[i][1][1]
+                var rot_x = cos_x*frames[i][1][0]-sin_x*frames[i][1][1]
+                var rot_y = sin_x*frames[i][1][0]+cos_x*frames[i][1][1]
                 frames[i][1][0]=rot_x
                 frames[i][1][1]=rot_y
             }
             if (gravity_y_step!=0){
-                rot_x = cos_y*frames[i][1][2]-sin_y*frames[i][1][1]
-                rot_y = sin_y*frames[i][1][2]+cos_y*frames[i][1][1]
+                var rot_x = cos_y*frames[i][1][2]-sin_y*frames[i][1][1]
+                var rot_y = sin_y*frames[i][1][2]+cos_y*frames[i][1][1]
                 frames[i][1][2]=rot_x
                 frames[i][1][1]=rot_y
             }
@@ -388,14 +464,15 @@ function ok_btn(){
                 last_pt=frames[i][1]
             }
             var tmp_dist = cal_dist(last_pt, frames[i][1])
-            if (tmp_dist<0.1){
+            if (tmp_dist<sample_step){
                 continue
             }
             remain_frame_id.push(i)
             last_pt=frames[i][1]
         }
-        conns=[]
-        nodes=[]
+        var conns=[]
+        var nodes=[]
+        
         for (var i=0; i<remain_frame_id.length; i++){
             nodes.push({"id":remain_frame_id[i]})
             if (i>0){
@@ -420,8 +497,8 @@ function ok_btn(){
                 frames[i][1]=add_v(multi_v(local_posi_tmp, tran_scale_step), ori_posi)
             }
             if (tran_angle_step!=0){
-                rot_x = cos_z*local_posi_tmp[0]-sin_z*local_posi_tmp[2]
-                rot_z = sin_z*local_posi_tmp[0]+cos_z*local_posi_tmp[2]
+                var rot_x = cos_z*local_posi_tmp[0]-sin_z*local_posi_tmp[2]
+                var rot_z = sin_z*local_posi_tmp[0]+cos_z*local_posi_tmp[2]
                 frames[i][1][0]=rot_x+ori_posi[0]
                 frames[i][1][2]=rot_z+ori_posi[2]
                 frames[i][2]=frames[i][2]+tran_angle_step*180/3.1415926
@@ -431,15 +508,15 @@ function ok_btn(){
             if (frame_id<tran_ori_frame){
                 continue
             }
-            sub_mps=mps[frame_id]
+            var sub_mps=mps[frame_id]
             for (var i=0; i<sub_mps.length; i++){
                 local_posi_tmp = sub_v(sub_mps[i], ori_posi)
                 if (tran_scale_step!=1){
                     sub_mps[i]=add_v(multi_v(local_posi_tmp, tran_scale_step), ori_posi)
                 }
                 if (tran_angle_step!=0){
-                    rot_x = cos_z*local_posi_tmp[0]-sin_z*local_posi_tmp[2]
-                    rot_z = sin_z*local_posi_tmp[0]+cos_z*local_posi_tmp[2]
+                    var rot_x = cos_z*local_posi_tmp[0]-sin_z*local_posi_tmp[2]
+                    var rot_z = sin_z*local_posi_tmp[0]+cos_z*local_posi_tmp[2]
                     sub_mps[i][0]=rot_x+ori_posi[0]
                     sub_mps[i][2]=rot_z+ori_posi[2]
                 }
@@ -449,13 +526,13 @@ function ok_btn(){
         update_scene()
         clear_choosed_pt()
         choose_pt_threejs.push(add_threejs_pts([ori_posi], "#ff0000", 10))
-    }else if(b_del_node){
+    }else if(b_del_node || b_del_node_range){
         if (del_nodes.length==0){
             return
         }
-        conns=[]
-        nodes=[]
-        node_id_old_new_table=[]
+        var conns=[]
+        var nodes=[]
+        var node_id_old_new_table=[]
         for (var i=0; i<graphs["node"].length; i++){
             if (!del_nodes.includes(i)){
                 nodes.push(graphs["node"][i])
@@ -479,7 +556,7 @@ function ok_btn(){
         if (del_edges.length==0){
             return
         }
-        conns=[]
+        var conns=[]
         for (var i=0; i<graphs["conn"].length; i++){
             if (!del_edges.includes(i)){
                 conns.push(graphs["conn"][i])
@@ -490,22 +567,43 @@ function ok_btn(){
         update_scene()
         del_edges=[]
     }else if(b_add_conn){
-        if (add_edge_node1>0 && add_edge_node2>0){
-            graphs["conn"].push({"v1":add_edge_node1, "v2":add_edge_node2})
+        if (edge_node1>=0 && edge_node2>=0){
+            graphs["conn"].push({"v1":edge_node1, "v2":edge_node2})
             clear_3d_scene()
             update_scene()
-            add_edge_node1=-1
-            add_edge_node2=-1
+            edge_node1=-1
+            edge_node2=-1
         }
     }else if(b_point_size){
         point_size = parseFloat(document.getElementById("point_size_input").value)
         clear_3d_scene()
         update_scene()
     }else if(b_pick_thres){
-        pick_thres = parseFloat(document.getElementById("pick_thres_input").value)
+        var pick_thres = parseFloat(document.getElementById("pick_thres_input").value)
         raycaster = new THREE.Raycaster();
         raycaster.params.Points.threshold = pick_thres
         raycaster.linePrecision = pick_thres
+    }else if(b_add_landmark){
+        var p=orbitControls.target
+        var mp3_str=document.getElementById("lm_mp3_input").value
+        var jpg_str=document.getElementById("lm_jpg_input").value
+        var id_str=document.getElementById("lm_id_input").value
+        var ind = find_lm_by_id(id_str)
+        if (ind==-1){
+            var new_lm={"id":id_str, "posi":[p.x, -p.z, p.y], "mp3":mp3_str, "jpg":jpg_str, "range":[]}
+            landmarks.push(new_lm)
+            update_landmarks()
+        }else{
+            landmarks[ind]["mp3"]=mp3_str
+            landmarks[ind]["jpg"]=jpg_str
+        }
+    }else if(b_del_landmark){
+        var id_str=document.getElementById("lm_id_input").value
+        var ind = find_lm_by_id(id_str)
+        if (ind!=-1){
+            landmarks.splice(ind,1)
+            update_landmarks()
+        }
     }
 }
 
@@ -523,6 +621,7 @@ function save_btn(){
     save_file(mps, "mps_seg.json")
     save_file(frames, "frames.json")
     save_file(graphs, "graph.json")
+    save_file(landmarks, "landmark.json")
 }
 
 function update_dir_marker(){
@@ -544,6 +643,18 @@ function onclick(event) {
     event.preventDefault();
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    var marker_raycaster = new THREE.Raycaster();
+    if (lm_objects.length>0){
+        marker_raycaster.setFromCamera(mouse, camera)
+        var intersects = marker_raycaster.intersectObjects(lm_objects, true)
+        if (intersects.length > 0) {
+            var ind=intersects[0].object.lm_mark_id
+            document.getElementById("lm_mp3_input").value=landmarks[ind]["mp3"]
+            document.getElementById("lm_jpg_input").value=landmarks[ind]["jpg"]
+            document.getElementById("lm_id_input").value=landmarks[ind]["id"]
+            update_lm_pano()
+        }
+    }
     raycaster.setFromCamera(mouse, camera)
     if (node_threejs.length>0){
         var intersects = raycaster.intersectObjects(node_threejs, true)
@@ -551,9 +662,9 @@ function onclick(event) {
             var pt_ind=intersects[0].index
             var tmp_p1= frames[graphs["node"][pt_ind]["id"]][1]
             var img_id=frames[graphs["node"][pt_ind]["id"]][0]
-            show_image(img_file_list[img_id])
-            cur_frame_id=graphs["node"][pt_ind]["id"]
-            update_dir_marker()
+            document.getElementById("node_id").innerHTML= pt_ind.toString()
+            document.getElementById("frame_id").innerHTML=graphs["node"][pt_ind]["id"].toString()
+            show_image(img_file_list[img_id], graphs["node"][pt_ind]["id"])
             var b_scale= document.getElementById("rad_scale").checked
             if (b_scale){
                 if (choose_pt_threejs.length>=2){
@@ -565,7 +676,7 @@ function onclick(event) {
                     first_choose_pt=tmp_p1
                 }else{
                     scale_candi = cal_dist(first_choose_pt, tmp_p1)
-                    segs=[[first_choose_pt, tmp_p1]]
+                    var segs=[[first_choose_pt, tmp_p1]]
                     tmp_line_threejs.push(add_threejs_segment(segs,"#ff0012"))
                     first_choose_pt=[]
                 }
@@ -578,26 +689,61 @@ function onclick(event) {
             }
             var b_del_node= document.getElementById("rad_del_node").checked
             if (b_del_node){
-                choose_pt_threejs.push(add_threejs_pts([tmp_p1], "#ff0000", 10))
-                del_nodes.push(pt_ind)
+                if (del_nodes.includes(pt_ind)){
+                    new_del_nodes=[]
+                    new_choose_pt_threejs=[]
+                    for (var i=0;i<del_nodes.length; i++){
+                        if (del_nodes[i]!=pt_ind){
+                            new_del_nodes.push(del_nodes[i])
+                            new_choose_pt_threejs.push(choose_pt_threejs[i])
+                        }else{
+                            scene.remove(choose_pt_threejs[i])
+                        }
+                    }
+                    del_nodes=new_del_nodes
+                    choose_pt_threejs=new_choose_pt_threejs
+                }else{
+                    choose_pt_threejs.push(add_threejs_pts([tmp_p1], "#ff0000", 10))
+                    del_nodes.push(pt_ind)
+                }
+                
             }
+            var b_del_node_range= document.getElementById("rad_del_node_range").checked
             var b_add_conn= document.getElementById("rad_add_conn").checked
-            if (b_add_conn){
+            if (b_add_conn || b_del_node_range){
                 if (choose_pt_threejs.length>=2){
                     clear_choosed_pt()
                 }
                 choose_pt_threejs.push(add_threejs_pts([tmp_p1], "#ff0000", 10))
-                if (add_edge_node1<0 && add_edge_node2<0){
-                    add_edge_node1=pt_ind
+                if (edge_node1<0 && edge_node2<0){
+                    edge_node1=pt_ind
                     return
                 }
-                if (add_edge_node1>0 && add_edge_node2<0){
-                    add_edge_node2=pt_ind
+                
+                if (edge_node1>=0 && edge_node2<0 && edge_node1!=pt_ind){
+                    edge_node2=pt_ind
+                    if (b_del_node_range){
+                        var start_frame=graphs["node"][edge_node1]["id"]
+                        var end_frame=graphs["node"][edge_node2]["id"]
+                        if (start_frame>end_frame){
+                            var tmp_id=start_frame
+                            start_frame=end_frame
+                            end_frame=tmp_id
+                        }
+                        for (var i=0; i<graphs["node"].length; i++){
+                            var frame_id_tmp=graphs["node"][i]["id"]
+                            if (frame_id_tmp>=start_frame && frame_id_tmp<=end_frame){
+                                del_nodes.push(i)
+                            }
+                        }
+                        edge_node1=-1
+                        edge_node2=-1
+                    }
                     return
                 }
-                if (add_edge_node1>0 && add_edge_node2>0){
-                    add_edge_node1=pt_ind
-                    add_edge_node2=-1
+                if (edge_node1>=0 && edge_node2>=0){
+                    edge_node1=pt_ind
+                    edge_node2=-1
                     return
                 }
             }
@@ -625,9 +771,68 @@ function onclick(event) {
     }
 }
 
+function get_sub(v1,v2){
+    return [v1[0]-v2[0], v1[1]-v2[1], v1[2]-v2[2],]
+}
+
+function cal_pano_posi(tar_posi, me_posi){
+    var rel_posi = get_sub(tar_posi,me_posi)
+    var norm = cal_dist(rel_posi,[0,0,0])
+    rel_posi=[rel_posi[0]/norm*1000,rel_posi[1]/norm*1000,rel_posi[2]/norm*1000]
+    var rel_cam_posi=[-rel_posi[2],-rel_posi[1],-rel_posi[0]]
+    return rel_cam_posi
+}
+
+function update_lm_pano(){
+    var id_str=document.getElementById("lm_id_input").value
+    var ind = find_lm_by_id(id_str)
+    if (ind==-1 || cur_frame_id==null){
+        return
+    }
+    var tar_posi=landmarks[ind]["posi"]
+    var me_posi=frames[cur_frame_id][1]
+    var pano_posi = cal_pano_posi(tar_posi, me_posi)
+    if (pano_marker==null){
+        var pointMaterial =  new THREE.PointsMaterial({
+            size: 10,
+            color: "#22ff11",
+            sizeAttenuation: false
+        });
+        var tmp_geo = new THREE.Geometry();
+        var tmp_mat = pointMaterial;
+        tmp_geo.vertices.push(new THREE.Vector3(0, 0, 0));
+        pano_marker = new THREE.Points(tmp_geo, tmp_mat);
+        scene_pano.add(pano_marker);
+    }
+    pano_marker.position.x=pano_posi[0]
+    pano_marker.position.y=pano_posi[1]
+    pano_marker.position.z=pano_posi[2]
+}
+
 function cal_dist(v1, v2){
-    dist=Math.sqrt((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1])+(v1[2]-v2[2])*(v1[2]-v2[2]))
+    var dist=Math.sqrt((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1])+(v1[2]-v2[2])*(v1[2]-v2[2]))
     return dist
+}
+
+function update_landmarks(){
+    transformControl.detach( transformControl.object )
+    for (var i=0; i<lm_objects.length; i++){
+        scene.remove(lm_objects[i])
+    }
+    lm_objects=[]
+    for(var i=0; i<landmarks.length; i++){
+        var posi = landmarks[i]["posi"]
+        add_lm_marker(posi,i)
+    }
+    dragcontrols = new DragControls( lm_objects, camera, renderer.domElement ) //
+    dragcontrols.enabled = false;
+    dragcontrols.addEventListener( 'hoveron', function ( event ) {
+        transformControl.attach( event.object )
+        cancelHideTransform()
+    });
+    dragcontrols.addEventListener( 'hoveroff', function () {
+        delayHideTransform()
+    });
 }
 
 function process_folder(){
@@ -644,7 +849,7 @@ function process_folder(){
         }
         var file_name=path_vec[path_vec.length-1]
         if (file_name.includes(".jpg")){
-            img_file_list[parseInt(file_name.split(".jpg")[0])-1]=file
+            img_file_list[parseInt(file_name.split(".jpg")[0])]=file
         }
         if (file_name.includes("graph.json")){
             graph_file=file
@@ -658,8 +863,16 @@ function process_folder(){
         if (file_name.includes("voice.json")){
             voice_list_file=file
         }
+        if (file_name.includes("landmark.json")){
+            var fr = new FileReader();
+            fr.onload = function(e) {
+                var lines = e.target.result;
+                landmarks = JSON.parse(lines)
+                update_landmarks()
+            };
+            fr.readAsText(file);
+        }
         if (file_name.includes(".mp3")){
-            mp3_list[file_name]=file
         }
     }
     if (frame_file!=null){
@@ -728,7 +941,7 @@ function update_pano() {
     }
     phi = THREE.Math.degToRad( 90 - lat );
     var img_dir=frames[cur_frame_id][2]
-    theta = THREE.Math.degToRad( lon+img_dir-20);
+    theta = THREE.Math.degToRad( lon-img_dir);
     camera_pano.position.x = distance * Math.sin( phi ) * Math.cos( theta );
     camera_pano.position.y = distance * Math.cos( phi );
     camera_pano.position.z = distance * Math.sin( phi ) * Math.sin( theta );
@@ -743,10 +956,10 @@ function init_pano() {
     var divWidth = container_query.width();
     var divHeight = container_query.height();
     var rate=divWidth/divHeight
-    camera_pano = new THREE.PerspectiveCamera( 60, rate, 1, 1100 );
+    camera_pano = new THREE.PerspectiveCamera( 60, rate, 1, 3000 );
     camera_pano.target = new THREE.Vector3( 0, 0, 0 );
     scene_pano = new THREE.Scene();
-    var geometry = new THREE.SphereBufferGeometry( 1000, 60, 40 );
+    var geometry = new THREE.SphereBufferGeometry( 1100, 60, 40 );
     // invert the geometry on the x-axis so that all of the faces point inward
     geometry.scale( -1, 1, 1 );
     var texture =  new THREE.TextureLoader().load('#');
@@ -764,13 +977,33 @@ function init_pano() {
     loader = new THREE.TextureLoader()
 }
 
+function change_mode(){
+    clear_choosed_pt()
+    clear_tmp_line()
+    if (dir_marker_threejs!=null){
+        scene.remove(dir_marker_threejs)
+        dir_marker_threejs=null
+        
+    }
+    del_nodes=[]
+    del_edges=[]
+    scale_candi=-1
+    tran_ori_frame=-1
+    edge_node1=-1
+    edge_node2=-1
+    cur_frame_id=null
+}
+
 $(document).ready(function(){
    $.ajaxSetup({
        async: true
    })
    init_pano()
    init_3d()
-   inputNode = document.getElementById("load_folder");
+   var inputNode = document.getElementById("load_folder");
    inputNode.addEventListener('change', process_folder, false)
+   window.change_mode=change_mode
+   window.save_btn=save_btn
+   window.ok_btn=ok_btn
 })
 
