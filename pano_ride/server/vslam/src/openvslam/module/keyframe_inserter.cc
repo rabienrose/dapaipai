@@ -49,7 +49,7 @@ bool keyframe_inserter::new_keyframe_is_needed(const data::frame& curr_frm, cons
     const bool cond_a2 = (frm_id_of_last_keyfrm_ + min_num_frms_ <= curr_frm.id_) && mapper_is_idle;
     // 条件A3: 前回のキーフレームから視点が移動してたらキーフレームを追加する
     const bool cond_a3 = num_tracked_lms < num_reliable_lms * 0.25;
-    std::cout<<num_tracked_lms <<":"<< num_reliable_lms * lms_ratio_thr<<std::endl;
+//    std::cout<<num_tracked_lms <<":"<< num_reliable_lms * lms_ratio_thr<<std::endl;
 
     // 条件B: (キーフレーム追加の必要条件)3次元点が閾値以上観測されていて，3次元点との割合が一定割合以下であればキーフレームを追加する
     const bool cond_b = (num_tracked_lms_thr > num_tracked_lms) || (num_tracked_lms < num_reliable_lms * lms_ratio_thr);

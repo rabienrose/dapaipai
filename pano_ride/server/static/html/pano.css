@@ -15,3 +15,27 @@
     max-height:100%;
 }
 
+#wechat_scene{
+    width:100%;
+}
+#wechat_map{
+    width:100%;
+}
+
+.dot {
+  height: 30px;
+  width: 30px;
+  background-color: #f00;
+  border-radius: 50%;
+  display: block;
+  position: absolute;
+}
+
+.steer{
+    height: 150px;
+    width: 150px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: block;
+}
+

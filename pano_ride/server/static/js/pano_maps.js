@@ -25,7 +25,7 @@ function show_map_list(){
                     str_upload='(<a href="#" onclick=upload_insv("'+map_name+'")>upload</a>)'
                     str_proc='(<a href="#" onclick=process_map("'+map_name+'")>process</a>)'
                     str_trim='(<a href="#" onclick=trim_map("'+map_name+'")>trim</a>)'
-                    str=str+"<b>"+map_name+", "+author+", "+time+", "+status+"</b>"+str_upload+str_proc+str_trim+"</br>"
+                    str=str+"<b>"+map_name+", "+author+", "+time+", "+status+"</b>"+str_upload+str_proc+"</br>"
                     for (var j=0; j<data[i]["insv"].length; j++){
                         var insv_name=data[i]["insv"][j]["name"]
                         var insv_size=(data[i]["insv"][j]["size"]/1024/1024/1024).toFixed(2)

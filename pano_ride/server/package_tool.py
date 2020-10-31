@@ -17,9 +17,12 @@ from init_process import post_process
 from init_process import resample
 from init_process import extract_meta
 from init_process import cal_scale_gravity_gps
+from init_process import generate_graph
+from init_process import output_2_mp4
 ws_root="init_tmp"
 if __name__ == "__main__":
     insv_list=["20201019-lin-mofan01"]
     #get_trajectory_and_mps(insv_list)
-    post_process(insv_list)
+    generate_graph(insv_list, True)
+    output_2_mp4()
     

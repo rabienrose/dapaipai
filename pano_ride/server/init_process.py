@@ -13,6 +13,7 @@ import shutil
 from datetime import datetime
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import time
 
 from libs.chamo_common.util import project
 from libs.config import get_oss_mongo
@@ -64,7 +65,7 @@ def get_and_download_a_new_task(map_name, insv_list):
         shutil.rmtree(ws_root)
         os.mkdir(ws_root)
     for i in range(len(insv_list)):
-#        insv_name=insv_list[i]
+        insv_name=insv_list[i]
 #        oss_file_addr=oss_root+"/"+map_name+"/"+insv_name+".insv"
 #        exist = bucket.object_exists(oss_file_addr)
 #        if exist:
@@ -72,10 +73,20 @@ def get_and_download_a_new_task(map_name, insv_list):
 #        else:
 #            return False
         oss_file_addr=oss_root+"/"+map_name+"/"+insv_name+".mp4"
+        print(oss_file_addr)
         exist = bucket.object_exists(oss_file_addr)
         if exist:
             bucket.get_object_to_file(oss_file_addr, ws_root+"/"+insv_name+".mp4")
         else:
+            return False
+        str_cmd = "ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "+ws_root+"/"+insv_name+".mp4"+" > "+ws_root+"/tmp.txt"
+        os.system(str_cmd)
+        f=open(ws_root+"/tmp.txt")
+        str = f.readline()
+        str_vec = str.split(",")
+        w=int(str_vec[0])
+        h=int(str_vec[1])
+        if w/h!=2:
             return False
     return True
         
@@ -94,15 +105,15 @@ def get_trajectory_and_mps(insv_list):
     for insv in insv_list:
         img_addr=ws_root+"/"+insv
         cmd_str1 = "mkdir "+img_addr
-        cmd_str2 = "ffmpeg -i "+ws_root+"/"+insv+".mp4"+" -qscale:v 3 ./"+img_addr+"/%06d.jpg"
-        #os.system(cmd_str1+" && "+cmd_str2)
+        cmd_str2 = "ffmpeg -i "+ws_root+"/"+insv+".mp4"+" -qscale:v 3 -vf scale=2048:1024 ./"+img_addr+"/%06d.jpg"
+        os.system(cmd_str1+" && "+cmd_str2)
         #to-do check jps count
         out_map_addr=ws_root+"/loc_map.bin"
         if os.path.exists(out_map_addr):
             cmd_str1="./vslam/build/run_image_localization -v ./vslam/orb_vocab/orb_vocab.dbow2 -i "+img_addr+" -c ./vslam/chamo.yaml --no_sleep -p "+out_map_addr+" --mask ./vslam/mask.png --no_sleep --mapping"
         else:
             cmd_str1="./vslam/build/run_image_slam -v ./vslam/orb_vocab/orb_vocab.dbow2 -i "+img_addr+" -c ./vslam/chamo.yaml --no_sleep -p "+out_map_addr+" --mask ./vslam/mask.png"
-        #os.system(cmd_str1)
+        os.system(cmd_str1)
         #to-do check output files
     for insv in insv_list:
         out_map_addr=ws_root+"/loc_map.bin"
@@ -121,6 +132,148 @@ def get_trajectory_and_mps(insv_list):
         shutil.copyfile(mps_addr, out_scene_addr+"/"+mps_name)
     else:
         return False
+    return True
+
+def takeSecond(elem):
+    return elem[1]
+
+def check_edge_dup(edges, edge):
+    for e in edges:
+        if e[0]==edge[0] and e[1]==edge[1] or e[0]==edge[1] and e[1]==edge[0]:
+            return True
+    return False
+
+def generate_graph(insv_list, simple=False):
+    out_scene_addr=ws_root+"/output"
+    traj_file_addr=out_scene_addr+"/"+"frames.txt"
+    graph_out=out_scene_addr+"/"+"graph.json"
+    segment_out=out_scene_addr+"/"+"segments.json"
+    frames_out=out_scene_addr+"/"+"frames.json"
+    f=open(traj_file_addr,"r")
+    line = f.readline()
+    frame_posis=[]
+    frame_dir=[]
+    frame_ind_table=[]
+    frame_scales=[]
+    insv_name=insv_list[0]
+    while line:
+        line_vec = line.split(" ")
+        posi=[float(line_vec[4]),float(line_vec[8]),float(line_vec[12])]
+        frame_posis.append(posi)
+        theta=math.atan2(float(line_vec[3]),float(line_vec[11]))*180/3.1415926
+        frame_dir.append(theta)
+        frame_scales.append(float(line_vec[13]))
+        frame_ind_table.append(int(line_vec[0])+1)
+        line = f.readline()
+    f.close()
+    frame_np = list_to_nparray(frame_posis)
+    frame_tree = sn.KDTree(frame_np, leaf_size=10)
+    frame_status=[1]*len(frame_posis)
+    avg_scale=0
+    scale_count=0
+    for i in range(len(frame_posis)):
+        if frame_scales[i]!=-1:
+            avg_scale=avg_scale+frame_scales[i]
+            scale_count=scale_count+1
+    avg_scale=avg_scale/scale_count
+    for i in range(len(frame_posis)):
+        if frame_status[i]!=0:
+            frame_status[i]=2
+            np_posi=np.array([frame_posis[i]])
+            inds,dists = frame_tree.query_radius(np_posi,r=avg_scale*0.01,return_distance=True)
+            for ind in inds[0]:
+                if frame_status[ind]==1:
+                    frame_status[ind]=0
+    remain_frames=[]
+    remain_frameids=[]
+    for i in range(len(frame_status)):
+        if frame_status[i]==2:
+            remain_frames.append(frame_posis[i])
+            remain_frameids.append(i)
+    if simple==True:
+        frame_list=[]
+        for i in range(len(remain_frames)):
+            frame_tmp=[i,remain_frames[i],frame_dir[remain_frameids[i]]]
+            frame_list.append(frame_tmp)
+        f=open(frames_out, "w")
+        json.dump(frame_list, f)
+        f.close()
+        segments=[]
+        seg=[0,0,len(remain_frames)-1]
+        segments.append(seg)
+        f=open(segment_out, "w")
+        json.dump(segments, f)
+        f.close()
+        
+    else:
+        all_pts_np = np.array(remain_frames)
+        tree = sn.KDTree(all_pts_np, leaf_size=10)
+        query_list_np=np.array(remain_frames)
+        inds,dists = tree.query_radius(query_list_np, r=avg_scale*0.2, return_distance=True)
+        nodes=[]
+        edges=[]
+        for i in range(0,len(inds)):
+            frame_id=remain_frameids[i]
+            nodes.append([remain_frames[i], frame_dir[frame_id]])
+            candis = inds[i].tolist()
+            dist_list = dists[i].tolist()
+            for j in range(0, len(candis)):
+                if i!=candis[j] and check_edge_dup(edges, [i, candis[j]])==False:
+    #                print([i, candis[j], dist_list[j]])
+                    edges.append([i, candis[j]])
+        graph={"node":nodes, "edge": edges}
+        f=open(graph_out, "w")
+        json.dump(graph, f)
+        f.close()
+    new_imgs=ws_root+"/out_img"
+    os.mkdir(new_imgs)
+    frame_id=0
+    for img_id in remain_frameids:
+        img_filename=str(1000000+img_id+1)[1:7]+".jpg"
+        img_addr=ws_root+"/"+insv_name+"/"+img_filename
+        new_img_filename=str(1000000+frame_id)[1:7]+".jpg"
+        frame_id = 1+frame_id
+        if os.path.exists(img_addr):
+            shutil.copyfile(img_addr, new_imgs+"/"+new_img_filename)
+        else:
+            return False
+    return True
+
+def output_2_mp4():
+    #cmd_str = "ffmpeg -i init_tmp/out_img/%06d.jpg -vcodec libx265 -crf 28 -preset fast -tag:v hvc1 -pix_fmt yuv420p "+ws_root+"/output/chamo.mp4"
+    cmd_str = "ffmpeg -i init_tmp/out_img/%06d.jpg -vcodec libx264 -crf 28 -preset fast -pix_fmt yuv420p "+ws_root+"/output/0.mp4"
+    os.system(cmd_str)
+    cmd_str = "ffmpeg -i init_tmp/out_img/%06d.jpg -vcodec libx264 -crf 28 -preset fast -pix_fmt yuv420p -vf reverse "+ws_root+"/output/0r.mp4"
+    os.system(cmd_str)
+    return True
+
+def output_2_mp4():
+
+def add_file_to_oss(local_path, oss_path, file_name, map_name):
+    if not os.path.exists(local_path):
+        return
+    oss_file_addr=oss_path+"/"+file_name
+    bucket.put_object_from_file(oss_file_addr, local_path+"/"+file_name)
+    re_count=map_table.count_documents({"name":map_name,"insv.name":file_name})
+    os.stat(local_path+"/"+file_name)
+    package_size=str(os.stat(local_path+"/"+file_name).st_size)
+    now = datetime.now()
+    time_str = now.strftime("%Y%m%d")
+    if re_count==0:
+        map_table.update_one({"name":map_name},{"$push":{"insv":{"name":file_name,"size":package_size, "time":time_str}}})
+    else:
+        map_table.update_one({"name":map_name, "insv.name":file_name},{"$set":{"insv.$.time":time_str, "insv.$.size":package_size}})
+    return True
+    
+def del_file_oss(oss_path, file_name, map_name):
+    return True
+
+def upload_mp4_and_meta(map_name):
+    oss_file_addr=oss_root+"/"+map_name
+    local_file_addr=ws_root+"/output"
+    add_file_to_oss(local_file_addr, oss_file_addr, "chamo.mp4", map_name)
+    add_file_to_oss(local_file_addr, oss_file_addr, "chamorev.mp4", map_name)
+    add_file_to_oss(local_file_addr, oss_file_addr, "graph.json", map_name)
     return True
 
 def post_process(insv_list):
@@ -208,7 +361,6 @@ def post_process(insv_list):
             img_id=frame_list[node["id"]][0]
             img_filename=str(1000000+count)[1:7]+".jpg"
             shutil.copyfile(ws_root+"/"+insv+"/"+img_filename, out_scene_addr+"/imgs/"+img_filename)
-            
     return True
 
 def download_package(map_name):
@@ -390,40 +542,32 @@ if __name__ == "__main__":
             map_name=x["name"]
             set_map_status(map_name,"processing")
             for filename in x["insv"]:
-                if ".insv" in filename["name"]:
-                    insv_list.append(filename["name"].split(".insv")[0])
+                if ".mp4" in filename["name"] and filename["name"]!="chamo.mp4":
+                    insv_list.append(filename["name"].split(".mp4")[0])
             if len(insv_list)==0:
                 set_map_status(map_name,"no_insv_error")
                 continue
+            set_map_status(map_name,"download_file")
             if not get_and_download_a_new_task(map_name, insv_list):
                 set_map_status(map_name,"download_file_error")
                 continue
-#            if not extract_meta(insv_list):
-#                set_map_status(map_name,"extract_meta_error")
-#                continue
+            set_map_status(map_name,"slam")
             if not get_trajectory_and_mps(insv_list):
                 set_map_status(map_name,"slam_error")
                 continue
-            if not post_process(insv_list):
-                set_map_status(map_name,"post_proc_error")
+            set_map_status(map_name,"generate_graph")
+            if not generate_graph(insv_list):
+                set_map_status(map_name,"generate_graph_error")
                 continue
-            break
-            if not zip_and_upload_result(map_name):
-                set_map_status(map_name,"upload_package_error")
+            set_map_status(map_name,"output_2_mp4")
+            if not output_2_mp4():
+                set_map_status(map_name,"output_2_mp4_error")
+                continue
+            set_map_status(map_name,"upload_mp4_and_meta")
+            if not upload_mp4_and_meta(map_name):
+                set_map_status(map_name,"upload_mp4_and_meta_error")
                 continue
             set_map_status(map_name,"done")
-        for x in map_table.find({"status":"waiting_trim"}):
-            map_name=x["name"]
-            if not download_package(map_name):
-                set_map_status(map_name,"download_package_error")
-                continue
-            if not trim():
-                set_map_status(map_name,"trim_error")
-                continue
-            if not zip_and_upload_result(map_name):
-                set_map_status(map_name,"upload_package_error")
-                continue
-        break
-        time.sleep(600)
+        time.sleep(60)
         
     

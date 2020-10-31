@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="1894.1">
+  <link rel="stylesheet" href="pano.css">
+  <link rel="stylesheet" href="demo_three.css">
+  <script type="text/javascript" src="../third/jquery-1.12.4.min.js"></script>
+  <script type="text/javascript" src="../third/three.js/build/three.js"></script>
+  <script type="text/javascript" src="../third/three.js/examples/js/controls/OrbitControls.js"></script>
+  <script src="../js/pano_wechat.js"></script>
+</head>
+<body>
+    <div id="wechat_map"></div>
+    <div id="wechat_pano">
+    </div>
+    <button onclick="go()" id="start_btn">开始游览</button>
+    <div id="bottom_button">
+        <button onclick="go()">Go</button>
+    </div>
+    
+    <div id="wechat_debug">debug</div>
+    <video id="video_pano" muted autoplay="autoplay" webkit-playsinline="true" x-webkit-airplay="true" playsinline="true" crossorigin="anonymous" preload="auto" style="display:none">
+    </video>
+    
+</body>
+</html>
+
+
+

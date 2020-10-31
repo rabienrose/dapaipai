@@ -78,6 +78,20 @@ def list_maps():
     x =map_table.find({},{"_id":0})
     return json.dumps(list(x))
     
+@app.route('/process_seg_modify', methods=['GET', 'POST'])
+def process_seg_modify():
+    map_name = request.args.get('map_name')
+    segments_str = request.args.get('segments')
+    temp_file_name=map_name+".json"
+    f=open(temp_file_name,"w")
+    f.write(segments_str)
+    f.close()
+    oss_file_addr=oss_root+"/"+map_name+"/segments.json"
+    bucket.put_object_from_file(oss_file_addr, temp_file_name)
+    os.remove(temp_file_name)
+    return json.dumps(["ok"])
+    
+    
 if __name__ == '__main__':
     app.config['SECRET_KEY'] = 'xxx'
     app.run('0.0.0.0', port=8001, debug=False)

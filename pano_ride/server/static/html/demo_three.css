@@ -1,8 +1,8 @@
 body {
 	margin: 0;
 	font-family: Monospace;
-	font-size: 16px;
-	line-height: 24px;
+	font-size: 35px;
+	line-height: 50px;
 	overscroll-behavior: none;
 }
 
@@ -43,12 +43,50 @@ canvas {
     left: 0;
     z-index: 1;
 }
+
+.bottom_button{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    font-size: 50px;
+    padding: 20px;
+}
+
 #v_input{
     position: absolute;
     top: 0;
     left: 0;
     z-index: 1;
 }
+#wechat_panel{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 40px;
+    box-sizing: border-box;
+    z-index: 1;
+}
+
+#start_btn{
+    font-size: 50px;
+    position: absolute;
+    width:100%;
+    z-index: 1;
+    display:none;
+}
+
+#wechat_debug{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    color: #f00;
+}
+
+
+
 #lm_img{
     position: absolute;
     bottom: 0;
